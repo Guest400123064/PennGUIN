@@ -16,6 +16,6 @@ class GoldsteinEventExtractor:
     
     
     def __init__(self, ):
-        
+        pass
         
 # %%
