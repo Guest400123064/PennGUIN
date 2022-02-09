@@ -9,20 +9,21 @@ This module implements helper class that can help scraping articles from a
     given list of urls.
 """
 
-
-from ssl import SSLError
+# %%
 from typing import List, Union, Tuple
 from multiprocessing import Pool as ThreadPool
 
 import requests
 from bs4 import BeautifulSoup
+from ssl import SSLError
 
 import trafilatura
 from trafilatura.settings import use_config
 
 
 # Error labels
-EMPTY_RETRIEVAL = '[EMPTY_RETRIEVAL]'
+EMPTY_TEXT = '[EMPTY_TEXT]'
+EMPTY_HTML = '[EMPTY_HTML]'
 ERROR_STATUS_CODE = {
     429, 499, 500, 502, 503, 504, 509, 
         520, 521, 522, 523, 524, 525, 526, 527, 530, 598
@@ -82,19 +83,31 @@ class NewsScraper:
             try:
                 resp = requests.get(url, headers=head, verify=False)
             except Exception as e:
-                return (None, EMPTY_RETRIEVAL)
+                return (EMPTY_HTML, EMPTY_TEXT)
     
         # Any error status
         if resp.status_code in ERROR_STATUS_CODE:
-            return (None, EMPTY_RETRIEVAL)
+            return (EMPTY_HTML, EMPTY_TEXT)
         
         # Parse and return
-        text = str(BeautifulSoup(resp.content, 'html5lib'))
-        if text is None:
-            return (None, EMPTY_RETRIEVAL)
-        return (text, self.html2doc(text))
+        html = str(BeautifulSoup(resp.content, 'html5lib'))
+        if html is None:
+            return (None, EMPTY_TEXT)
+        return (html, self.html2doc(html))
     
     
     def _fetch_tra(self, url: str) -> Tuple[str, str]:
         
-        return (None, EMPTY_RETRIEVAL)
+        return (EMPTY_HTML, EMPTY_TEXT)
+
+# %%
+# Example usage
+if __name__ == '__main__':
+    
+    # Init scraper and fetch
+    scraper = NewsScraper()
+    html, text = scraper.fetch('https://github.blog/2019-03-29-leader-spotlight-erin-spiceland/')
+    
+    # Print results
+    print(text)
+    print(html)
