@@ -1,0 +1,153 @@
+EVENT,SCORE
+Military attack,-10
+Military clash,-10
+Military assault,-10
+Seize position or possessions,-9.2
+Seize position,-9.2
+Seize possessions,-9.2
+Nonmilitary destruction/injury,-8.7
+Nonmilitary destruction,-8.7
+Nonmilitary injury,-8.7
+Noninjury destructive action,-8.3
+Armed force mobilization,-7.6
+Armed force exercise,-7.6
+Armed force display,-7.6
+military buildup,-7.6
+Break diplomatic relations,-7
+Threat with force specified,-7
+Ultimatum,-6.9
+threat with negative sanction and time limit,-6.9
+Threat with specific negative nonmilitary sanction,-5.8
+Reduce or cut off aid or assistance,-5.6
+act to punish/deprive,-5.6
+Reduce aid,-5.6
+Reduce assistance,-5.6
+cut off aid,-5.6
+cut off assistance,-5.6
+act to punish,-5.6
+act to deprive,-5.6
+Nonmilitary demonstration,-5.2
+Nonmilitary walk out on,-5.2
+Order person or personnel out of country,-5
+Order person out of country,-5
+Order personnel out of country,-5
+Expel organization or group,-4.9
+Expel organization,-4.9
+Expel group,-4.9
+Issue order,-4.9
+Issue command,-4.9
+insist,-4.9
+insist compliance,-4.9
+demand compliance,-4.9
+Threat without specific negative sanction stated,-4.4
+Detain or arrest person(s),-4.4
+Detain person,-4.4
+arrest persons,-4.4
+Detain persons,-4.4
+arrest person,-4.4
+Reduce routine international activity,-4.1
+recall officials,-4.1
+Refuse,-4
+oppose,-4
+refuse to allow,-4
+Turn down proposal,-4
+reject protest,-4
+demand,-4
+threat,-4
+Halt negotiation,-3.8
+Denounce,-3.4
+denigrate,-3.4
+abuse,-3.4
+Give warning,-3
+Issue formal complaint or protest,-2.4
+Issue formal complaint,-2.4
+Issue formal protest,-2.4
+Charge,-2.2
+criticize,-2.2
+blame,-2.2
+disapprove,-2.2
+Cancel or postpone planned event,-2.2
+Cancel planned event,-2.2
+postpone planned event,-2.2
+Make complaint (not formal),-1.9
+Make complaint,-1.9
+Grant asylum,-1.1
+Deny an attributed policy,-1.1
+Deny an attributed action,-1.1
+Deny an attributed role,-1.1
+Deny an attributed position,-1.1
+Deny an accusation,-0.9
+Comment on situation,-0.2
+Urge or suggest action or policy,-0.1
+Urge action,-0.1
+Urge policy,-0.1
+suggest action,-0.1
+suggest policy,-0.1
+Explicit decline to comment,-0.1
+Request action,-0.1
+call for,-0.1
+Explain or state policy,0
+state future position,0
+Explain policy,0
+state policy,0
+Ask for information,0.1
+Surrender,0.6
+yield to order,0.6
+submit to arrest,0.6
+Yield position,0.6
+retreat,0.6
+evacuate,0.6
+Meet with,1
+send note,1
+Entreat,1.2
+plead,1.2
+appeal to,1.2
+beg,1.2
+Offer proposal,1.5
+Express regret,1.8
+apologize,1.8
+Visit,1.9
+go to,1.9
+Release persons and return property,1.9
+Release persons,1.9
+return property,1.9
+Admit wrongdoing,2
+apologize,2
+retract statement,2
+Give state invitation,2.5
+Assure,2.8
+reassure,2.8
+Receive visit,2.8
+host,2.8
+Suspend sanctions,2.9
+end punishment,2.9
+call truce,2.9
+Agree to future action,3
+Agree to future procedure,3
+Agree to meet,3
+Agree to negotiate,3
+Ask for policy assistance,3.4
+Ask for material assistance,3.4
+Praise,3.4
+hail,3.4
+applaud,3.4
+extend condolences,3.4
+Endorse other's policy or position,3.6
+give verbal support,3.6
+Endorse other's policy,3.6
+Endorse other's position,3.6
+Promise other future support,4.5
+Promise own policy support,4.5
+Promise material support,5.2
+Grant privilege,5.4
+diplomatic recognition,5.4
+de facto relations,5.4
+Give other assistance,6.5
+Make substantive agreement,6.5
+Extend economic aid,7.4
+give,7.4
+buy,7.4
+sell,7.4
+loan,7.4
+borrow,7.4
+Extend military assistance,8.3
