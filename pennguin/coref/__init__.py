@@ -1,1 +1,1 @@
-from .allen import AllenCorefPredictor
+from ._allen import AllenCorefPredictor
