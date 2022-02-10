@@ -18,7 +18,6 @@ from bs4 import BeautifulSoup
 from ssl import SSLError
 
 import trafilatura
-from trafilatura.settings import use_config
 
 
 # Error labels
@@ -40,7 +39,7 @@ class NewsScraper:
         
         self.fetcher = fetcher
         self.verbose = verbose
-        self.threads = 4
+        self.n_cores = 4
     
     
     def html2doc(self, html: str) -> str:
@@ -65,11 +64,11 @@ class NewsScraper:
         if isinstance(urls, str):
             return [fetcher(urls)]
         elif isinstance(urls, list):
-            with ThreadPool(self.threads) as p:
+            with ThreadPool(self.n_cores) as p:
                 return p.map(fetcher, urls)
         else:
-            raise ValueError(f'Unknown <urls> type {type(urls)}; ' + 
-                    'only <str, List[str]> allowed')
+            raise ValueError('@ NewsScraper.fetch() :: ' + 
+                f'Unknown <urls> type {type(urls)}; only <str, List[str]> allowed')
 
     
     def _fetch_req(self, url: str) -> Tuple[str, str]:
@@ -101,12 +100,12 @@ class NewsScraper:
         return (EMPTY_HTML, EMPTY_TEXT)
 
 # %%
-# Example usage
+# Sample usage
 if __name__ == '__main__':
     
     # Init scraper and fetch
     scraper = NewsScraper()
-    html, text = scraper.fetch('https://github.blog/2019-03-29-leader-spotlight-erin-spiceland/')
+    html, text = scraper.fetch('https://github.blog/2019-03-29-leader-spotlight-erin-spiceland/')[0]
     
     # Print results
     print(text)
