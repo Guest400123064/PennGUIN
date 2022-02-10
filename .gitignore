@@ -1,16 +1,9 @@
 # DO NOT UPLOAD/TRACK LARGE DATASET
 data
 
+# Analysis file
 analysis/*/out
 analysis/*/data
-
-
-/download_txt
-/test
-rw_top_200_interest.csv
-test\total_rw_only_top_interest.csv
-total_rw_only_top_interest.csv
-rw_focus_articles.zip
 
 # Temporary folder
 tmp

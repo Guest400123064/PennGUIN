@@ -84,9 +84,15 @@ class NewsScraper:
                 resp = requests.get(url, headers=head, verify=False)
             except Exception as e:
                 logging.warning('@ NewsScraper.fetch() :: ' + 
-                    f'error fetch from url <{url}>: {e}')
+                    f'failed to fetch from url <{url}>: {e}')
                 return (EMPTY_HTML, EMPTY_TEXT)
-    
+        
+        # Other exception, such as invalid url
+        except Exception as e:
+            logging.warning('@ NewsScraper.fetch() :: ' + 
+                f'failed to fetch from url <{url}>: {e}')
+            return (EMPTY_HTML, EMPTY_TEXT)
+
         # Any error status
         if resp.status_code in ERROR_STATUS_CODE:
             return (EMPTY_HTML, EMPTY_TEXT)
