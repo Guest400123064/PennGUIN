@@ -82,6 +82,8 @@ class NewsScraper:
             try:
                 resp = requests.get(url, headers=head, verify=False)
             except Exception as e:
+                
+                # TODO: Write code for logging and warning
                 return (EMPTY_HTML, EMPTY_TEXT)
     
         # Any error status

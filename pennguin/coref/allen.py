@@ -29,16 +29,16 @@ class AllenCorefPredictor:
             mis-substitutions.
         """
 
-        self.__model = CorefPredictor.from_path(model, cuda_device=CUDA_AVAIL)
-        self.__spacy = self.model._spacy
+        self._model = CorefPredictor.from_path(model, cuda_device=CUDA_AVAIL)
+        self._spacy = self.model._spacy
 
     @property
     def model(self):
-        return self.__model
+        return self._model
     
     @property
     def spacy(self):
-        return self.__spacy
+        return self._spacy
         
     # -------------------------------------------------------------------------
     def resolve(self, texts: Union[List[str], str]) -> List[str]:
