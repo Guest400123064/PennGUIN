@@ -15,21 +15,21 @@ There are two categories of models:
 
 # %%
 from typing import List, Union, Any, Dict
-from multiprocessing import Pool as ThreadPool
 
 import numpy as np
 
 from keybert import KeyBERT
 from transformers import pipeline
 
+from ._base import BaseEventExtractor
 
-class KeyBERTEventExtractor:
+
+class KeyBERTEventExtractor(BaseEventExtractor):
     
     def __init__(self, model: str = 'all-MiniLM-L6-v2', top_n_events: int = 4):
 
         self._model = KeyBERT(model)
         self._top_n_events = top_n_events
-        self.n_cores = 4
 
     @property
     def model(self):
@@ -95,7 +95,7 @@ class KeyBERTEventExtractor:
         }
         
         
-class BARTEventExtractor:
+class BARTEventExtractor(BaseEventExtractor):
     
     def __init__(self, model: str = 'facebook/bart-large-mnli', top_n_events: int = 4):
 
@@ -103,7 +103,7 @@ class BARTEventExtractor:
         self._top_n_events = top_n_events
 
 
-class SentBERTEventExtractor:
+class SentBERTEventExtractor(BaseEventExtractor):
     
     def __init__(self, model: str = 'cross-encoder/nli-MiniLM2-L6-H768', top_n_events: int = 4):
 
