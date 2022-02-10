@@ -22,7 +22,7 @@ from transformers import pipeline
 
 class BARTEventExtractor:
     
-    def __init__(self, model: str = 'all-MiniLM-L6-v2', events: List[str] = []):
+    def __init__(self, model: str = 'facebook/bart-large-mnli', events: List[str] = []):
 
         self._events = tuple(events)
         self._model = pipeline('zero-shot-classification', model)

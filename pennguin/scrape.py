@@ -68,7 +68,7 @@ class NewsScraper:
                 return p.map(fetcher, urls)
         else:
             raise ValueError('@ NewsScraper.fetch() :: ' + 
-                f'Unknown <urls> type {type(urls)}; only <str, List[str]> allowed')
+                f'Invalid <urls> type {type(urls)}; only <str, List[str]> allowed')
 
     
     def _fetch_req(self, url: str) -> Tuple[str, str]:

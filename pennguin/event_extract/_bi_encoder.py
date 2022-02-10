@@ -12,9 +12,8 @@ This module implements helper classes to extract events. The problem
 """
 
 # %%
-import os
-from pathlib import Path
 from typing import List, Union, Any, Dict
+from multiprocessing import Pool as ThreadPool
 
 import numpy as np
 from keybert import KeyBERT
@@ -27,7 +26,7 @@ class KeyBERTEventExtractor:
         self._events = tuple(events)
         self._model = KeyBERT(model)
         self._top_n_events = 4
-        self._n_cores = 4
+        self.n_cores = 4
 
     @property
     def model(self):
@@ -42,46 +41,54 @@ class KeyBERTEventExtractor:
         return self._top_n_events
     
     @staticmethod
-    def softmax(x: np.ndarray) -> np.ndarray:
+    def softmax(x: np.ndarray) -> List[float]:
         """Regular softmax function, from scores to probabilities"""
         
         ex = np.exp(x - x.max())
-        return ex / ex.sum()
+        return (ex / ex.sum()).tolist()
     
     # ------------------------------------------------------------------
     def extract(self, texts: Union[List[str], str]) -> List[Dict[str, Any]]:
-        """Used to extract most probable Goldstein events from the given sentence/article
+        """Used to extract most probable events from the given sentence/article
 
         Args:
-            txt (str): input sentence such as news article (it can be multiple sentences
+            texts (str): input sentence such as news article (it can be multiple sentences
                 but should be a single string).
 
-        Returns:
-            List[Tuple[str, float]]: a list of possible Goldstein events, stored in tuples.
-                The float numbers denote the 'likelihood' of that corresponding event.
-        """
-        
-        return self.event_detector.extract_keywords(
-            texts, 
-            candidates=self.events,
-            top_n=self.top_n_events
-        )
-
-    def grade(self, text: str) -> float:
-        """Grade the event score of the input sentence/article.
-
-        Args:
-            txt (str): input sentence such as news article (it can be multiple sentences
-                but should be a single string).
+        Raises:
+            ValueError: Invalid article input type.
 
         Returns:
-            float: Goldstein score
+            List[Dict[str, Any]]: extracted events stored in dictionaries of format:
+                
+                {
+                    'events': <list of top possible events>,
+                    'scores': <The float numbers denote the 'likelihood' of that corresponding event>
+                }
         """
         
-        detect = self.extract(text)
-        events = np.array([d[0] for d in detect])
-        weight = self.softmax(np.array([d[1] for d in detect]))
-
-        # Weighted average
-        return self.event_score[events] @ weight
+        extractor = self._extract_single
+        
+        # Direct extraction for single article
+        if isinstance(texts, str):
+            return [extractor(texts)]
+        elif isinstance(texts, list):
+            with ThreadPool(self.n_cores) as p:
+                return p.map(extractor, texts)
+        else:
+            raise ValueError('@ KeyBERTEventExtractor.extract() :: ' + 
+                f'Invalid <texts> type {type(texts)}; only <str, List[str]> allowed')
     
+    
+    def _extract_single(self, text: str) -> Dict[str, Any]:
+        """Driver used to extract events from a single article/sentence"""
+
+        events, scores = zip(
+            *self.event_detector.extract_keywords(
+                text, candidates=self.events, top_n=self.top_n_events
+            )
+        )
+        return {
+            'events': events,
+            'scores': self.softmax(np.array(scores))
+        }
