@@ -5,9 +5,9 @@
 # Date: 02-09-2021
 # =============================================================================
 """
-This module implements helper classes to extract Goldstein events. The problem 
+This module implements helper classes to extract events. The problem 
     is formalized as a zero-shot text classification task. Instead of using 
-    cross-encoder architecture, the bi-encoder (using KeyBERT API) is 
+    cross-encoder architecture, the bi-encoder (e.g. using KeyBERT API) is 
     adopted for performance consideration.
 """
 
@@ -20,7 +20,7 @@ import numpy as np
 from keybert import KeyBERT
 
 
-class GoldsteinEventExtractor:
+class KeyBERTEventExtractor:
     
     def __init__(self, model: str = 'all-MiniLM-L6-v2', events: List[str] = []):
 
