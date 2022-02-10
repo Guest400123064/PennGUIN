@@ -1,2 +1,2 @@
-from .scraper import NewsScraper
+from .scrape import NewsScraper
 from .coref import AllenCorefPredictor
