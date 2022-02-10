@@ -1,1 +1,1 @@
-from .gold import GoldsteinEventExtractor
+from .goldstein import GoldsteinEventExtractor
