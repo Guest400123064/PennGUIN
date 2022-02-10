@@ -1,2 +1,5 @@
-from ._bi_encoder import KeyBERTEventExtractor
-from ._cross_encoder import BARTEventExtractor, SentBERTEventExtractor
+from ._classification import (
+    KeyBERTEventExtractor,
+    BARTEventExtractor, 
+    SentBERTEventExtractor
+)

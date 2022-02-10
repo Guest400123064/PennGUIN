@@ -6,9 +6,11 @@
 # =============================================================================
 """
 This module implements helper classes to extract events. The problem 
-    is formalized as a zero-shot text classification task. Instead of using 
-    cross-encoder architecture, the bi-encoder (e.g. using KeyBERT API) is 
-    adopted for performance consideration.
+    is formalized as a zero-shot text classification task. 
+    
+There are two categories of models: 
+    - Cross-encoder: potentially high acc but low speed (when too many possible events).
+    - Bi-encoder: potentially low acc but high speed.
 """
 
 # %%
@@ -16,25 +18,22 @@ from typing import List, Union, Any, Dict
 from multiprocessing import Pool as ThreadPool
 
 import numpy as np
+
 from keybert import KeyBERT
+from transformers import pipeline
 
 
 class KeyBERTEventExtractor:
     
-    def __init__(self, model: str = 'all-MiniLM-L6-v2', events: List[str] = []):
+    def __init__(self, model: str = 'all-MiniLM-L6-v2', top_n_events: int = 4):
 
-        self._events = tuple(events)
         self._model = KeyBERT(model)
-        self._top_n_events = 4
+        self._top_n_events = top_n_events
         self.n_cores = 4
 
     @property
     def model(self):
         return self._model
-    
-    @property
-    def events(self):
-        return self._events
     
     @property
     def top_n_events(self):
@@ -51,12 +50,12 @@ class KeyBERTEventExtractor:
         return (ex / ex.sum()).tolist()
     
     # ------------------------------------------------------------------
-    def extract(self, texts: Union[List[str], str]) -> List[Dict[str, Any]]:
+    def extract(self, texts: Union[List[str], str], events: List[str] = ['[NULL]']) -> List[Dict[str, Any]]:
         """Used to extract most probable events from the given sentence/article
 
         Args:
-            texts (str): input sentence such as news article (it can be multiple sentences
-                but should be a single string).
+            texts (Union[List[str], str]): input sentences such as news article.
+            events (List[str]): list of possible events
 
         Raises:
             ValueError: Invalid article input type.
@@ -74,26 +73,40 @@ class KeyBERTEventExtractor:
         
         # Direct extraction for single article
         if isinstance(texts, str):
-            return [extractor(texts)]
+            return [extractor(texts, events)]
         elif isinstance(texts, list):
             with ThreadPool(self.n_cores) as p:
-                return p.map(extractor, texts)
+                return p.map(extractor, zip(texts, [events] * len(texts)))
         else:
             raise ValueError('@ KeyBERTEventExtractor.extract() :: ' + 
                 f'Invalid <texts> type {type(texts)}; only <str, List[str]> allowed')
     
     
-    def _extract_single(self, text: str) -> Dict[str, Any]:
+    def _extract_single(self, text: str, events: List[str] = ['[NULL]']) -> Dict[str, Any]:
         """Driver used to extract events from a single article/sentence"""
 
-        events, scores = zip(
+        extract, scores = zip(
             *self.model.extract_keywords(
-                text, candidates=self.events, top_n=self.top_n_events
+                text, candidates=events, top_n=self.top_n_events
             )
         )
         return {
-            'events': events,
+            'events': extract,
             'scores': self.softmax(np.array(scores))
         }
+        
+        
+class BARTEventExtractor:
+    
+    def __init__(self, model: str = 'facebook/bart-large-mnli', top_n_events: int = 4):
 
-# %%
+        self._model = pipeline('zero-shot-classification', model)
+        self._top_n_events = top_n_events
+
+
+class SentBERTEventExtractor:
+    
+    def __init__(self, model: str = 'cross-encoder/nli-MiniLM2-L6-H768', top_n_events: int = 4):
+
+        self._model = pipeline('zero-shot-classification', model)
+        self._top_n_events = top_n_events
