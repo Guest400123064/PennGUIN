@@ -41,10 +41,13 @@ class KeyBERTEventExtractor:
         return self._top_n_events
     
     @staticmethod
-    def softmax(x: np.ndarray) -> List[float]:
-        """Regular softmax function, from scores to probabilities"""
+    def softmax(x: np.ndarray, t: float = 0.1) -> List[float]:
+        """Regular softmax function, from scores to probabilities. 
+            The temperature parameter <t> is used to sharpen the 
+            distribution. The smaller the value, the sharper the 
+            distribution (closer to 'hard max/normal max')"""
         
-        ex = np.exp(x - x.max())
+        ex = np.exp((x - x.max()) / t)
         return (ex / ex.sum()).tolist()
     
     # ------------------------------------------------------------------
@@ -84,7 +87,7 @@ class KeyBERTEventExtractor:
         """Driver used to extract events from a single article/sentence"""
 
         events, scores = zip(
-            *self.event_detector.extract_keywords(
+            *self.model.extract_keywords(
                 text, candidates=self.events, top_n=self.top_n_events
             )
         )
@@ -92,3 +95,5 @@ class KeyBERTEventExtractor:
             'events': events,
             'scores': self.softmax(np.array(scores))
         }
+
+# %%
