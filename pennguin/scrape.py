@@ -10,6 +10,7 @@ This module implements helper class that can help scraping articles from a
 """
 
 # %%
+import logging
 from typing import List, Union, Tuple
 from multiprocessing import Pool as ThreadPool
 
@@ -82,8 +83,8 @@ class NewsScraper:
             try:
                 resp = requests.get(url, headers=head, verify=False)
             except Exception as e:
-                
-                # TODO: Write code for logging and warning
+                logging.warning('@ NewsScraper.fetch() :: ' + 
+                    f'error fetch from url <{url}>: {e}')
                 return (EMPTY_HTML, EMPTY_TEXT)
     
         # Any error status
