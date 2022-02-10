@@ -75,8 +75,7 @@ class KeyBERTEventExtractor:
         if isinstance(texts, str):
             return [extractor(texts, events)]
         elif isinstance(texts, list):
-            with ThreadPool(self.n_cores) as p:
-                return p.map(extractor, zip(texts, [events] * len(texts)))
+            return [extractor(t, events) for t in texts]
         else:
             raise ValueError('@ KeyBERTEventExtractor.extract() :: ' + 
                 f'Invalid <texts> type {type(texts)}; only <str, List[str]> allowed')
@@ -110,3 +109,5 @@ class SentBERTEventExtractor:
 
         self._model = pipeline('zero-shot-classification', model)
         self._top_n_events = top_n_events
+
+# %%
