@@ -1,24 +1,28 @@
 # %%
 from typing import List, FrozenSet
+import sys
+sys.path.append('./signed_local_community')
 
 import pandas as pd
 import numpy as np
 
+from pyvis.network import Network
+
 import networkx as nx
 from networkx.algorithms.community import (
     k_clique_communities,
-    greedy_modularity_communities,
-    girvan_newman
+    greedy_modularity_communities
 )
 
-from pyvis.network import Network
+# Signed graph clustering
+from signed_local_community.core import (
+    query_graph_using_sparse_linear_solver, 
+    sweep_on_x_fast
+)
 
 
 # Read Tone-CoMention results
-df_people = pd.read_csv(r'D:\Users\lgfz1\Documents\gdelt\analysis\graph_analysis\data\rw_top_200_people.csv')
-df_people = df_people[df_people.interest == 1]
-
-df_result = pd.read_csv(r'D:\Users\lgfz1\Documents\gdelt\analysis\graph_analysis\data\rw_top_200_tone.csv')
+df_result = pd.read_csv(r'/home/lgfz1/Projects/pennguin/analysis/graph_analysis/data/rw_top_200_tone.csv')
 df_result = df_result[~df_result.id2.isna()]
 
 df_edge = (df_result
@@ -61,12 +65,12 @@ class Entities:
             for n in g:
                 others -= g
                 self.G.nodes[n]['group'] = i
-                self.G.nodes[n]['title'] = f'[group] :: [{i}]'
+                self.G.nodes[n]['title'] = '[group] :: [{:}]'.format(i)
 
         # All other nodes in a default group
         for n in others:
             self.G.nodes[n]['group'] = len(groups)
-            self.G.nodes[n]['title'] = f'[group] :: [DEFAULT]'
+            self.G.nodes[n]['title'] = '[group] :: [DEFAULT]'
         return groups + [frozenset(others)]
     
     def cls_greedy_modularity(self, weights: str = None) -> List[FrozenSet[str]]:
@@ -78,7 +82,7 @@ class Entities:
         for i, g in enumerate(groups):
             for n in g:
                 self.G.nodes[n]['group'] = i
-                self.G.nodes[n]['title'] = f'[group] :: [{i}]'
+                self.G.nodes[n]['title'] = '[group] :: [{:}]'.format(i)
 
         return groups
 
