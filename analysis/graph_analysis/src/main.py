@@ -1,7 +1,5 @@
 # %%
 from typing import List, FrozenSet
-import sys
-sys.path.append('./signed_local_community')
 
 import pandas as pd
 import numpy as np
@@ -11,13 +9,8 @@ from pyvis.network import Network
 import networkx as nx
 from networkx.algorithms.community import (
     k_clique_communities,
-    greedy_modularity_communities
-)
-
-# Signed graph clustering
-from signed_local_community.core import (
-    query_graph_using_sparse_linear_solver, 
-    sweep_on_x_fast
+    greedy_modularity_communities,
+    asyn_lpa_communities
 )
 
 

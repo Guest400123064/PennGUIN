@@ -17,8 +17,6 @@ Kagame's cabinet:
 
 # %%
 from typing import List, FrozenSet
-import sys
-sys.path.append('./signed_local_community')
 
 import pandas as pd
 import numpy as np
@@ -27,10 +25,7 @@ from pyvis.network import Network
 
 # Signed graph clustering
 import networkx as nx
-from signed_local_community.core import (
-    query_graph_using_sparse_linear_solver, 
-    sweep_on_x_fast
-)
+from networkx.algorithms.community import asyn_lpa_communities
 
 
 # Read Tone-CoMention results
@@ -49,48 +44,38 @@ g = nx.from_pandas_edgelist(
     df=pd.DataFrame({
         'source': df_edge.loc[:, 'id1'],
         'target': df_edge.loc[:, 'id2'],
-        'sign': df_edge.loc[:, 'co_mentions_avg'] * df_edge.loc[:, 'co_mentions_confidence'],
+        'prob': np.exp(df_edge.loc[:, 'co_mentions_avg'] * df_edge.loc[:, 'co_mentions_confidence']),
+        'tone': df_edge.loc[:, 'co_mentions_avg'] * df_edge.loc[:, 'co_mentions_confidence'],
         'freq': df_edge.loc[:, 'co_mentions_count']
     }),
-    edge_attr=['sign', 'freq']
+    edge_attr=['prob', 'tone', 'freq']
 )
 
 stoi = {n: i for i, n in enumerate(g.nodes)}
 itos = list(g.nodes)
 
 # %%
-s1 = [
-    stoi['Paul Kagame']
-]
-s2 = [
-    stoi['Frank Habineza']
-]
+# Compute partition
+groups = asyn_lpa_communities(g, weight='prob')
 
-x, obj_val = query_graph_using_sparse_linear_solver(
-    g, [s1, s2], 
-    kappa=0.9, 
-    verbose=0
-)
-
-# Sweep on x to find C1 and C2
-C1, C2, C, best_t, best_sbr, ts, sbr_list = sweep_on_x_fast(g, x, top_k=100)
-for i, grp in enumerate([C1, C2]):
+# Assign labels
+for i, grp in enumerate(groups):
     for n in grp:
-        g.nodes[itos[n]]['group'] = i
-        g.nodes[itos[n]]['title'] = '[group] :: [{:}]'.format(i)
+        g.nodes[n]['group'] = i
+        g.nodes[n]['title'] = '[group] :: [{:}]'.format(i)
 
 # %%
 nx.set_edge_attributes(
     g, {(src, dst): {
         'width': abs(w),
         'color': 'blue' if w > 0 else 'red'
-    } for (src, dst, w) in g.edges.data('sign')}
+    } for (src, dst, w) in g.edges.data('tone')}
 )
 
 net = Network('1024px', '1024px', notebook=True)
 net.from_nx(g)
 net.show_buttons(filter_=['physics', 'edges'])
-net.show('picture/cls-viz-tone-weight-by-freq-sign-local.html')
+net.show('picture/cls-viz-tone-weight-by-freq-lpa.html')
 
 # %%
 # Sanity check
