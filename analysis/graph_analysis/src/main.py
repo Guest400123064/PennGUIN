@@ -9,8 +9,7 @@ from pyvis.network import Network
 import networkx as nx
 from networkx.algorithms.community import (
     k_clique_communities,
-    greedy_modularity_communities,
-    asyn_lpa_communities
+    greedy_modularity_communities
 )
 
 
