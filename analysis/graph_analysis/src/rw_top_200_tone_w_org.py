@@ -190,13 +190,17 @@ class PeopleNetwork:
 # %%
 net_ppl = PeopleNetwork(df_edge_ppl, edge_weight='score_average_weighted')
 mem_ppl = net_ppl.signed_partition(resolution_neg=0.02, return_member=True)
-partition = net_ppl.signed_partition(resolution_neg=0.02)
-draw_partition(net_ppl.g, partition).show('tmp1.html')
 
 node_list = pd.concat([df_edge_org['id1'], df_edge_org['id2']]).unique() 
 edge_list = zip(df_edge_org['id1'], df_edge_org['id2'], df_edge_org['score_average_weighted'])
 
 g_merge, partition = net_ppl.signed_partition_merge_orgs(node_list, edge_list, mem_ppl)
-draw_partition(g_merge, partition).show('tmp.html')
+net = draw_partition(g_merge, partition)
+
+for n in net_ppl.ppl_set:
+    n = net_ppl.stoi(n)
+    net.node_map[n]['shape'] = 'square'
+    
+net.show('tmp.html')
 
 # %%
