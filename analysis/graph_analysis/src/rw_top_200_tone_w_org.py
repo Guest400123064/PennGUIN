@@ -8,16 +8,44 @@ import igraph as ig
 import leidenalg as la
 from pyvis.network import Network as VisNetwork
 
-SRC_EDGE_FN = '/home/lgfz1/Projects/pennguin/analysis/graph_analysis/data/rw_top_200_tone_w_org.csv'
+
+def draw_partition(
+    g: ig.Graph, 
+    partition: List[FrozenSet[int]]
+) -> VisNetwork:
+
+    net = VisNetwork('1024px', '1024px')
+    for i_grp, grp in enumerate(partition):
+        for i_node in grp:
+            net.add_node(
+                i_node, 
+                value=2,
+                label=g.vs[i_node]['name'],
+                group=i_grp,
+                title=f'Group {i_grp}'
+            )
+            
+    for edge in g.es:
+        net.add_edge(
+            edge.source, edge.target,
+            title=round(edge['edge_weight'], 2),
+            value=abs(edge['edge_weight']),
+            color='red' if (edge['edge_weight'] < 0) else 'blue'
+        )
+
+    net.repulsion(central_gravity=0.1)
+    net.show_buttons(filter_=['physics', 'edges'])
+    return net
 
 
+# ======================================================================================================
 # Load raw co-mention edge list and merge accross articles
 #   IMPORTANT: Though there are fields <co_mentions_sum> 
 #       and <co_mentions_count> in the source edge list file, 
 #       they are PER ARTICLE statistics. So we still need 
 #       to sum them up individually and manually calculate average
 df_edge = df_edge = (
-    pd.read_csv(SRC_EDGE_FN)
+    pd.read_csv('/home/lgfz1/Projects/pennguin/analysis/graph_analysis/data/rw_top_200_tone_w_org.csv')
         .dropna(subset='id2')
         .groupby(['id1', 'id2', 'flag_person', 'flag_company'], as_index=False, sort=False)
             [['co_mentions_sum', 'co_mentions_count']]
@@ -122,43 +150,12 @@ class PeopleNetwork:
 
     def merge_orgs(self, node_list, edge_list, edge_attr):
         pass
-    
-    
-    @staticmethod
-    def draw_partition(
-        g: ig.Graph, 
-        partition: List[FrozenSet[int]]
-    ) -> VisNetwork:
-
-        net = VisNetwork('1024px', '1024px')
-        for i_grp, grp in enumerate(partition):
-            for i_node in grp:
-                net.add_node(
-                    i_node, 
-                    value=2,
-                    label=g.vs[i_node]['name'],
-                    group=i_grp,
-                    title=f'Group {i_grp}'
-                )
-                
-        for edge in g.es:
-            net.add_edge(
-                edge.source, edge.target,
-                title=round(edge['edge_weight'], 2),
-                value=abs(edge['edge_weight']),
-                color='red' if (edge['edge_weight'] < 0) else 'blue'
-            )
-
-        net.repulsion(central_gravity=0.1)
-        net.show_buttons(filter_=['physics', 'edges'])
-        return net
 
 
 net_ppl = PeopleNetwork(df_edge_ppl, edge_weight='score_average')
 
 # %%
 partition = net_ppl.signed_partition(resolution_neg=0.3)
-net_vis = net_ppl.draw_partition(net_ppl.g, partition)
-net_vis.show('tmp.html')
+draw_partition(net_ppl.g, partition).show('tmp.html')
 
 # %%
