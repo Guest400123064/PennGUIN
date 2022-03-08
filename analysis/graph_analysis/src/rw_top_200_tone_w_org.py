@@ -54,7 +54,7 @@ df_edge = df_edge = (
 
 # Calculate average tone and confidence of estimation (log10 count and normalize to [0, 1])
 df_edge.loc[:, 'score_average']          = df_edge.co_mentions_sum / df_edge.co_mentions_count
-df_edge.loc[:, 'score_confidence']       = np.log10(df_edge.co_mentions_count + 1)
+df_edge.loc[:, 'score_confidence']       = np.log(df_edge.co_mentions_count + 1)
 df_edge.loc[:, 'score_confidence']       = df_edge.score_confidence / df_edge.score_confidence.max()
 df_edge.loc[:, 'score_average_weighted'] = df_edge.score_average * df_edge.score_confidence
 
