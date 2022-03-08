@@ -35,8 +35,8 @@ def draw_partition(
             color='red' if (edge['edge_weight'] < 0) else 'blue'
         )
 
-    net.repulsion(central_gravity=0.1)
-    net.show_buttons(filter_=['physics', 'edges'])
+    net.repulsion(central_gravity=0.1, spring_length=256)
+    net.show_buttons(filter_=True)
     return net
 
 
@@ -47,7 +47,7 @@ def draw_partition(
 #       they are PER ARTICLE statistics. So we still need 
 #       to sum them up individually and manually calculate average
 df_edge = df_edge = (
-    pd.read_csv('/home/lgfz1/Projects/pennguin/analysis/graph_analysis/data/rw_top_200_tone_w_org.csv')
+    pd.read_csv('/home/lgfz1/Projects/pennguin/analysis/graph_analysis/data/rw_top_200_tone_w_org_merge.csv')
         .dropna(subset='id2')
         .groupby(['id1', 'id2', 'flag_person', 'flag_company'], as_index=False, sort=False)
             [['co_mentions_sum', 'co_mentions_count']]
@@ -187,13 +187,14 @@ class PeopleNetwork:
             return g_merge, [frozenset(map(self.itos, c)) for c in part_pos]
         return g_merge, [frozenset(c) for c in part_pos]
 
-
-net_ppl = PeopleNetwork(df_edge_ppl, edge_weight='score_average')
-mem_ppl = net_ppl.signed_partition(return_member=True)
-
 # %%
+net_ppl = PeopleNetwork(df_edge_ppl, edge_weight='score_average_weighted')
+mem_ppl = net_ppl.signed_partition(resolution_neg=0.02, return_member=True)
+partition = net_ppl.signed_partition(resolution_neg=0.02)
+draw_partition(net_ppl.g, partition).show('tmp1.html')
+
 node_list = pd.concat([df_edge_org['id1'], df_edge_org['id2']]).unique() 
-edge_list = zip(df_edge_org['id1'], df_edge_org['id2'], df_edge_org['score_average'])
+edge_list = zip(df_edge_org['id1'], df_edge_org['id2'], df_edge_org['score_average_weighted'])
 
 g_merge, partition = net_ppl.signed_partition_merge_orgs(node_list, edge_list, mem_ppl)
 draw_partition(g_merge, partition).show('tmp.html')
