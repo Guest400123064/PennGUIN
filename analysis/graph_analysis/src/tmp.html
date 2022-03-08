@@ -1,0 +1,132 @@
+<html>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.css" type="text/css" />
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis-network.min.js"> </script>
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+
+<style type="text/css">
+
+        #mynetwork {
+            width: 1024px;
+            height: 1024px;
+            background-color: #ffffff;
+            border: 1px solid lightgray;
+            position: relative;
+            float: left;
+        }
+
+        
+
+        
+        #config {
+            float: left;
+            width: 400px;
+            height: 600px;
+        }
+        
+
+        
+</style>
+
+</head>
+
+<body>
+<div id = "mynetwork"></div>
+
+
+<div id = "config"></div>
+
+<script type="text/javascript">
+
+    // initialize global variables.
+    var edges;
+    var nodes;
+    var network; 
+    var container;
+    var options, data;
+
+    
+    // This method is responsible for drawing the graph, returns the drawn network
+    function drawGraph() {
+        var container = document.getElementById('mynetwork');
+        
+        
+
+        // parsing and collecting nodes and edges from the python
+        nodes = new vis.DataSet([{"group": 0, "id": 1, "label": "donald kaberuka", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 2, "label": "paul kagame", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 3, "label": "richard sezibera", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 4, "label": "louise mushikiwabo", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 6, "label": "claver gatete", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 7, "label": "johnston busingye", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 8, "label": "francis gatare", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 9, "label": "james musoni", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 15, "label": "collins mwai", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 16, "label": "clare akamanzi", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 17, "label": "lady jeannette kagame", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 19, "label": "anastase murekezi", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 21, "label": "alexis nzahabwanimana", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 22, "label": "diane shima rwigara", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 24, "label": "jeannette kagame", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 27, "label": "visa international", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 28, "label": "richard tusabe", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 29, "label": "african development bank (afdb)", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 30, "label": "starbucks", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 31, "label": "agnes binagwaho", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 32, "label": "umurenge saccos", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 33, "label": "ecobank transnational", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 34, "label": "jack kayonga", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 35, "label": "equity bank", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 36, "label": "robert mathu", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 37, "label": "first data", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 38, "label": "maurice toroitich", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 39, "label": "global trust bank", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 40, "label": "astrazeneca", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 41, "label": "jean philbert nsengimana", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 42, "label": "fina bank", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 43, "label": "carnegie mellon university", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 44, "label": "east african development bank (eadb)", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 45, "label": "geraldine mukeshimana", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 46, "label": "tanzania ports authority", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 47, "label": "deloitte touche tohmatsu", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 48, "label": "kenya commercial bank (kcb)", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 49, "label": "celestin twahirwa", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 50, "label": "millicom international cellular", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 51, "label": "peterson tumwebaze", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 52, "label": "john rwangombwa", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 53, "label": "african trade insurance agency", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 54, "label": "bharti airtel", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 55, "label": "access bank", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 56, "label": "tongai maramba", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 57, "label": "robin bairstow", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 58, "label": "paul rusesabagina", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 59, "label": "paula ingabire", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 0, "id": 60, "label": "crane bank", "shape": "dot", "title": "Group 0", "value": 2}, {"group": 1, "id": 25, "label": "bernard makuza", "shape": "dot", "title": "Group 1", "value": 2}, {"group": 1, "id": 11, "label": "vincent biruta", "shape": "dot", "title": "Group 1", "value": 2}, {"group": 1, "id": 12, "label": "donatille mukabalisa", "shape": "dot", "title": "Group 1", "value": 2}, {"group": 2, "id": 10, "label": "vincent munyeshyaka", "shape": "dot", "title": "Group 2", "value": 2}, {"group": 2, "id": 23, "label": "edouard ngirente", "shape": "dot", "title": "Group 2", "value": 2}, {"group": 3, "id": 26, "label": "ben gasore", "shape": "dot", "title": "Group 3", "value": 2}, {"group": 3, "id": 13, "label": "james karuhanga", "shape": "dot", "title": "Group 3", "value": 2}, {"group": 4, "id": 0, "label": "daniel ngamije", "shape": "dot", "title": "Group 4", "value": 2}, {"group": 5, "id": 5, "label": "victoire ingabire", "shape": "dot", "title": "Group 5", "value": 2}, {"group": 6, "id": 14, "label": "anastase shyaka", "shape": "dot", "title": "Group 6", "value": 2}, {"group": 7, "id": 18, "label": "diane rwigara", "shape": "dot", "title": "Group 7", "value": 2}, {"group": 8, "id": 20, "label": "juvenal habyarimana", "shape": "dot", "title": "Group 8", "value": 2}]);
+        edges = new vis.DataSet([{"color": "red", "from": 0, "title": -5.29, "to": 14, "value": 5.291202791567865}, {"color": "red", "from": 1, "title": -0.18, "to": 15, "value": 0.18245299113113425}, {"color": "red", "from": 1, "title": -0.2, "to": 2, "value": 0.19699918305613773}, {"color": "blue", "from": 2, "title": 0.81, "to": 16, "value": 0.8095442952430401}, {"color": "blue", "from": 2, "title": 1.55, "to": 17, "value": 1.551923002491935}, {"color": "blue", "from": 1, "title": 1.85, "to": 3, "value": 1.8526463215177944}, {"color": "blue", "from": 1, "title": 1.43, "to": 4, "value": 1.4276686710390885}, {"color": "blue", "from": 3, "title": 2.12, "to": 4, "value": 2.124906622570096}, {"color": "red", "from": 5, "title": -2.04, "to": 18, "value": 2.035162264359812}, {"color": "blue", "from": 6, "title": 2.25, "to": 19, "value": 2.2480593600941114}, {"color": "blue", "from": 2, "title": 2.0, "to": 19, "value": 2.000152753005745}, {"color": "blue", "from": 2, "title": 2.0, "to": 6, "value": 2.000152753005745}, {"color": "red", "from": 2, "title": -6.28, "to": 20, "value": 6.276615233758442}, {"color": "red", "from": 7, "title": -3.71, "to": 21, "value": 3.705709713994514}, {"color": "blue", "from": 4, "title": 3.93, "to": 8, "value": 3.9298447117483355}, {"color": "blue", "from": 8, "title": 4.15, "to": 19, "value": 4.152229668604604}, {"color": "red", "from": 2, "title": -0.69, "to": 4, "value": 0.6933365314310499}, {"color": "red", "from": 2, "title": -2.12, "to": 22, "value": 2.1150655747201217}, {"color": "blue", "from": 1, "title": 2.11, "to": 9, "value": 2.108757161268192}, {"color": "blue", "from": 10, "title": 2.24, "to": 23, "value": 2.236624093943397}, {"color": "blue", "from": 4, "title": 0.7, "to": 7, "value": 0.702833056709978}, {"color": "blue", "from": 2, "title": 3.59, "to": 24, "value": 3.594866610647122}, {"color": "blue", "from": 1, "title": 2.04, "to": 8, "value": 2.0448737171166145}, {"color": "blue", "from": 11, "title": 4.31, "to": 25, "value": 4.3108492188742495}, {"color": "blue", "from": 12, "title": 0.8, "to": 25, "value": 0.8019786016486683}, {"color": "blue", "from": 13, "title": 2.06, "to": 26, "value": 2.055119774943372}, {"color": "red", "from": 2, "title": -0.25, "to": 27, "value": 0.2515407571738029}, {"color": "blue", "from": 51, "title": 7.28, "to": 55, "value": 7.281334138721414}, {"color": "blue", "from": 37, "title": 3.43, "to": 56, "value": 3.426064094472583}, {"color": "blue", "from": 1, "title": 1.94, "to": 29, "value": 1.93672587827312}, {"color": "blue", "from": 6, "title": 2.29, "to": 29, "value": 2.2945587259999023}, {"color": "blue", "from": 15, "title": 0.49, "to": 29, "value": 0.4933015680271397}, {"color": "blue", "from": 2, "title": 0.98, "to": 29, "value": 0.9803363888446115}, {"color": "blue", "from": 27, "title": 4.33, "to": 55, "value": 4.328213928824003}, {"color": "blue", "from": 29, "title": 2.64, "to": 44, "value": 2.6421930745904154}, {"color": "red", "from": 34, "title": -2.13, "to": 44, "value": 2.132783092472812}, {"color": "blue", "from": 35, "title": 4.51, "to": 48, "value": 4.5088836857011}, {"color": "blue", "from": 27, "title": 0.05, "to": 29, "value": 0.051393376116258625}, {"color": "blue", "from": 28, "title": 5.19, "to": 43, "value": 5.192187190477214}, {"color": "blue", "from": 50, "title": 3.05, "to": 54, "value": 3.049684134547861}, {"color": "red", "from": 27, "title": -0.55, "to": 37, "value": 0.5490278936189172}, {"color": "blue", "from": 27, "title": 0.17, "to": 30, "value": 0.1697060231302878}, {"color": "blue", "from": 42, "title": 5.36, "to": 48, "value": 5.364870941554873}, {"color": "blue", "from": 30, "title": 4.98, "to": 58, "value": 4.978890654991645}, {"color": "blue", "from": 27, "title": 0.73, "to": 43, "value": 0.7266168775319066}, {"color": "blue", "from": 2, "title": 2.09, "to": 43, "value": 2.093550330224644}, {"color": "blue", "from": 27, "title": 2.8, "to": 35, "value": 2.797280608968351}, {"color": "blue", "from": 38, "title": 5.24, "to": 48, "value": 5.237095921283412}, {"color": "blue", "from": 3, "title": 1.67, "to": 29, "value": 1.6651148223925984}, {"color": "blue", "from": 4, "title": 1.25, "to": 29, "value": 1.2526536502300927}, {"color": "blue", "from": 50, "title": 3.08, "to": 56, "value": 3.081754599818612}, {"color": "blue", "from": 48, "title": 4.65, "to": 55, "value": 4.649125990920916}, {"color": "blue", "from": 32, "title": 5.71, "to": 55, "value": 5.708904914041165}, {"color": "blue", "from": 32, "title": 5.83, "to": 48, "value": 5.833979617696894}, {"color": "blue", "from": 29, "title": 1.95, "to": 48, "value": 1.9508823622727078}, {"color": "blue", "from": 55, "title": 4.96, "to": 60, "value": 4.962707517093146}, {"color": "blue", "from": 35, "title": 4.96, "to": 60, "value": 4.962707517093146}, {"color": "blue", "from": 35, "title": 4.96, "to": 55, "value": 4.962707517093146}, {"color": "red", "from": 4, "title": -0.22, "to": 27, "value": 0.22345625040068864}, {"color": "red", "from": 29, "title": -0.9, "to": 43, "value": 0.8967353950428021}, {"color": "blue", "from": 35, "title": 4.11, "to": 37, "value": 4.112324825435677}, {"color": "red", "from": 2, "title": -0.84, "to": 30, "value": 0.8373736900842015}, {"color": "blue", "from": 39, "title": 5.07, "to": 42, "value": 5.069135662898017}, {"color": "blue", "from": 9, "title": 4.43, "to": 29, "value": 4.429948497617978}, {"color": "blue", "from": 29, "title": 4.3, "to": 53, "value": 4.296708801382767}, {"color": "red", "from": 48, "title": -3.13, "to": 49, "value": 3.127357141978342}, {"color": "blue", "from": 6, "title": 2.91, "to": 27, "value": 2.911531733141496}, {"color": "blue", "from": 29, "title": 2.84, "to": 41, "value": 2.843808186281243}, {"color": "blue", "from": 27, "title": 3.23, "to": 38, "value": 3.234447304555444}, {"color": "blue", "from": 37, "title": 1.46, "to": 54, "value": 1.4630804553195333}, {"color": "blue", "from": 35, "title": 6.49, "to": 42, "value": 6.489086890482124}, {"color": "blue", "from": 2, "title": 2.9, "to": 35, "value": 2.898588941735285}, {"color": "blue", "from": 36, "title": 4.63, "to": 48, "value": 4.63429796850603}, {"color": "blue", "from": 27, "title": 1.7, "to": 33, "value": 1.7016268720550294}, {"color": "red", "from": 35, "title": -1.77, "to": 38, "value": 1.7671132039196982}, {"color": "blue", "from": 27, "title": 2.74, "to": 47, "value": 2.7442240878620674}, {"color": "blue", "from": 31, "title": 1.96, "to": 43, "value": 1.957501535002632}, {"color": "blue", "from": 26, "title": 6.15, "to": 42, "value": 6.14709573866616}, {"color": "blue", "from": 26, "title": 0.31, "to": 60, "value": 0.3132519355502834}, {"color": "blue", "from": 29, "title": 4.97, "to": 59, "value": 4.970612671644064}, {"color": "blue", "from": 35, "title": 3.44, "to": 57, "value": 3.4443611944728008}, {"color": "red", "from": 30, "title": -1.09, "to": 45, "value": 1.094320227533022}, {"color": "blue", "from": 47, "title": 1.04, "to": 55, "value": 1.0428968937977827}, {"color": "blue", "from": 38, "title": 2.52, "to": 60, "value": 2.516619014036793}, {"color": "red", "from": 52, "title": -3.24, "to": 60, "value": 3.2350507146666945}, {"color": "red", "from": 30, "title": -3.58, "to": 40, "value": 3.5817543518806643}, {"color": "red", "from": 24, "title": -2.05, "to": 29, "value": 2.0520247747457048}, {"color": "blue", "from": 29, "title": 7.48, "to": 55, "value": 7.478787708280204}, {"color": "blue", "from": 2, "title": 0.74, "to": 44, "value": 0.7378473784001098}, {"color": "red", "from": 27, "title": -2.7, "to": 48, "value": 2.698756192216205}, {"color": "blue", "from": 29, "title": 2.52, "to": 46, "value": 2.5204996159968784}, {"color": "blue", "from": 19, "title": 0.82, "to": 53, "value": 0.8216277949807118}, {"color": "red", "from": 31, "title": -5.36, "to": 40, "value": 5.355625863193427}]);
+
+        // adding nodes and edges to the graph
+        data = {nodes: nodes, edges: edges};
+
+        var options = {
+    "configure": {
+        "enabled": true,
+        "filter": [
+            "physics",
+            "edges"
+        ]
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": false,
+            "type": "continuous"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "repulsion": {
+            "centralGravity": 0.1,
+            "damping": 0.09,
+            "nodeDistance": 100,
+            "springConstant": 0.05,
+            "springLength": 200
+        },
+        "solver": "repulsion",
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+        
+        
+
+        
+        // if this network requires displaying the configure window,
+        // put it in its div
+        options.configure["container"] = document.getElementById("config");
+        
+
+        network = new vis.Network(container, data, options);
+	 
+        
+
+
+        
+
+        return network;
+
+    }
+
+    drawGraph();
+
+</script>
+</body>
+</html>

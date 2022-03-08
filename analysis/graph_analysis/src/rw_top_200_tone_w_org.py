@@ -1,5 +1,7 @@
 # %%
 from typing import List, FrozenSet, Tuple, Any, Dict, Union
+import copy
+import warnings
 
 import pandas as pd
 import numpy as np
@@ -84,6 +86,8 @@ class PeopleNetwork:
         self.g.add_vertices(node_list)
         self.g.add_edges(es=edge_list, attributes=edge_attr)
         
+        self.ppl_set = set(node_list.tolist())
+        
         
     def itos(self, idx: int) -> str:
         
@@ -93,34 +97,20 @@ class PeopleNetwork:
     
     def stoi(self, name: str) -> int:
         
-        names = self.g.vs['name']
-        return names.index(name)
-        
-        
-    def simple_partition(self, 
-        return_name: bool = False,
-        resolution: float = 0.01
-    ) -> Union[List[FrozenSet[int]], List[FrozenSet[str]]]:
-        
-        partition = la.find_partition(
-            self.g, 
-            partition_type       = la.CPMVertexPartition,
-            resolution_parameter = resolution,
-            weights              = 'edge_weight',
-            n_iterations         = 8,
-            seed                 = 42
-        )
-        
-        if return_name:
-            return [frozenset(map(self.itos, c)) for c in partition]
-        return [frozenset(c) for c in partition]
+        found = self.g.vs.select(name=name)
+        if len(found) == 1:
+            return found[0].index
+        elif len(found) > 1:
+            warnings.warn(f'[WARN] :: duplicate name <{name}>; found {len(found)}')
+        return -1
     
     
     def signed_partition(self, 
-        return_name: bool     = False,
         resolution_pos: float = 0.01,
-        resolution_neg: float = 0.3
-    ) -> Union[List[FrozenSet[int]], List[FrozenSet[str]]]:
+        resolution_neg: float = 0.3,
+        return_member:  bool  = False,
+        return_name:    bool  = False,
+    ) -> Union[List[int], List[FrozenSet[int]], List[FrozenSet[str]]]:
         
         g_pos = self.g.subgraph_edges(self.g.es.select(edge_weight_gt=0), delete_vertices=False)
         g_neg = self.g.subgraph_edges(self.g.es.select(edge_weight_lt=0), delete_vertices=False)
@@ -129,12 +119,12 @@ class PeopleNetwork:
         part_pos = la.CPMVertexPartition(
             g_pos, 
             weights='edge_weight',
-            resolution_parameter = resolution_pos
+            resolution_parameter=resolution_pos
         )
         part_neg = la.CPMVertexPartition(
             g_neg, 
             weights='edge_weight',
-            resolution_parameter = resolution_neg
+            resolution_parameter=resolution_neg
         )
         
         optimizer = la.Optimiser()
@@ -143,19 +133,69 @@ class PeopleNetwork:
             layer_weights=[1, -1]
         )
         
+        if return_member:
+            return part_pos.membership
         if return_name:
             return [frozenset(map(self.itos, c)) for c in part_pos]
         return [frozenset(c) for c in part_pos]
     
 
-    def merge_orgs(self, node_list, edge_list, edge_attr):
-        pass
+    def signed_partition_merge_orgs(self, 
+        node_list: List[str], 
+        edge_list: List[Tuple[str, str, float]],
+        ppl_membership: List[int],
+        return_name: bool     = False,
+        resolution_pos: float = 0.01,
+        resolution_neg: float = 0.3
+    ) -> Tuple[ig.Graph, Union[List[FrozenSet[int]], List[FrozenSet[str]]]]:
+        
+        # Merge org nodes & edges
+        g_merge = copy.deepcopy(self.g)
+        g_merge.add_vertices(list(set(node_list) - self.ppl_set))
+        for s, t, w in edge_list:
+            g_merge.add_edge(s, t, edge_weight=w)
+            
+        # Find ppl membership first and fix
+        fix_membership = [i < self.g.vcount() for i in range(g_merge.vcount())]
+        new_membership = list(range(g_merge.vcount()))
+        new_membership[:self.g.vcount()] = ppl_membership
+        
+        # Merge partitions for organizations
+        g_pos = g_merge.subgraph_edges(g_merge.es.select(edge_weight_gt=0), delete_vertices=False)
+        g_neg = g_merge.subgraph_edges(g_merge.es.select(edge_weight_lt=0), delete_vertices=False)
+        g_neg.es['edge_weight'] = [-w for w in g_neg.es['edge_weight']]
+        
+        part_pos = la.CPMVertexPartition(
+            g_pos, new_membership,
+            weights='edge_weight',
+            resolution_parameter=resolution_pos
+        )
+        part_neg = la.CPMVertexPartition(
+            g_neg, new_membership,
+            weights='edge_weight',
+            resolution_parameter=resolution_neg
+        )
+        
+        optimizer = la.Optimiser()
+        optimizer.optimise_partition_multiplex(
+            [part_pos, part_neg],
+            layer_weights=[1, -1],
+            is_membership_fixed=fix_membership
+        )
+        
+        if return_name:
+            return g_merge, [frozenset(map(self.itos, c)) for c in part_pos]
+        return g_merge, [frozenset(c) for c in part_pos]
 
 
 net_ppl = PeopleNetwork(df_edge_ppl, edge_weight='score_average')
+mem_ppl = net_ppl.signed_partition(return_member=True)
 
 # %%
-partition = net_ppl.signed_partition(resolution_neg=0.3)
-draw_partition(net_ppl.g, partition).show('tmp.html')
+node_list = pd.concat([df_edge_org['id1'], df_edge_org['id2']]).unique() 
+edge_list = zip(df_edge_org['id1'], df_edge_org['id2'], df_edge_org['score_average'])
+
+g_merge, partition = net_ppl.signed_partition_merge_orgs(node_list, edge_list, mem_ppl)
+draw_partition(g_merge, partition).show('tmp.html')
 
 # %%
