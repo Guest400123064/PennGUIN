@@ -226,9 +226,8 @@ for n in ppl_set:
     
 net_vis.show('rw_tone_cls.html')
 
-# %%
 # Write cluster assignments
-df_assign = pd.DataFrame({
-    'entity_name': ,
+pd.DataFrame({
+    'entity_name': g_merge.vs['name'],
     'cluster': mem_org
-})
+}).to_csv('rw_tone_cls_assignment.csv', index=False)
