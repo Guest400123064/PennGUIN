@@ -1,4 +1,4 @@
-index,article,id1,score_sum1,sent_count1,avg1,id2,score_sum2,sent_count2,avg2,co_mentions_sum,co_mentions_count,co_avg,flag_person,flag_company,entity_name_x,id1_cluster,entity_name_y,id2_cluster
+index,article,id1,score_sum1,sent_count1,avg1,id2,score_sum2,sent_count2,avg2,co_mentions_sum,co_mentions_count,co_avg,flag_person,flag_company,entity_name,id1_cluster,entity_name_id2,id2_cluster
 28,20180703110000-99,paul kagame,-0.332855292517812,1,-0.332855292517812,visa international,0.1919145830046771,2.0,0.0959572915023385,-0.332855292517812,1.0,-0.332855292517812,1,1,paul kagame,1,visa international,0
 75,20150909021500-2463,peterson tumwebaze,14.562668277442828,2,7.281334138721414,access bank,68.05308477422676,10.0,6.805308477422676,14.562668277442828,2.0,7.281334138721414,1,1,peterson tumwebaze,0,access bank,0
 80,20150729081500-661,tongai maramba,4.730595566520293,1,4.730595566520293,first data,16.726130346022135,7.0,2.3894471922888765,4.730595566520293,1.0,4.730595566520293,1,1,tongai maramba,0,first data,0

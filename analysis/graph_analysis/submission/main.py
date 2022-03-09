@@ -41,17 +41,11 @@ def draw_partition(g: ig.Graph, partition: List[FrozenSet[int]]) -> VisNetwork:
 # Load raw co-mention edge list and get a set of people (for plotting)
 df_edge = pd.read_csv('rw_tone_merge.csv')
 ppl_set = set(
-    df_edge.loc[np.logical_and(df_edge.loc[:, 'flag_person'] == 1, df_edge.loc[:, 'flag_company'] == 0), 'id1']
+    pd.read_csv('rw_ppl_list.csv', usecols=['persons'])
+        .persons.str.lower()
         .unique()
         .tolist()
-).union({
-    # Special cases
-    'robin bairstow',
-    'celestin rwabukumba',
-    'celestin twahirwa',
-    'tongai maramba',
-    'umurenge saccos'
-})
+)
 
 # Merge accross articles
 # IMPORTANT: Though there are fields <co_mentions_sum> 

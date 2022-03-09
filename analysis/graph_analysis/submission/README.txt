@@ -1,4 +1,4 @@
-This folder contains three scripts, five csv data files, and one HTML visualization,
+This folder contains three scripts, six csv data files, and one HTML visualization,
     - Scripts
         + main.py
             * Script for clustering and visualization generation
@@ -8,6 +8,8 @@ This folder contains three scripts, five csv data files, and one HTML visualizat
         + join_cluster_assignments.py
             * Script for join cluster assignments to edge list
     - Data
+        + rw_ppl_list.csv
+            * List of people I got from Zhaosen
         + rw_tone_org.csv
             * New edge list by Zhaosen incorporating the companies. However, 
                 since the articles used for calculating these scores 

@@ -13,15 +13,17 @@ df_assign = pd.read_csv('rw_tone_cls_assignment.csv')
 df_join = pd.merge(
     df_edges, df_assign, 'left',
     left_on='id1', right_on='entity_name',
-    suffixes=('', 'id1')
+    suffixes=('', '_id1')
 ).rename({'cluster': 'id1_cluster'}, axis=1)
 
 # Merge id2
 df_join = pd.merge(
     df_join, df_assign, 'left',
     left_on='id2', right_on='entity_name',
-    suffixes=('', 'id2')
+    suffixes=('', '_id2')
 ).rename({'cluster': 'id2_cluster'}, axis=1)
 
 # Dump file
 df_join.to_csv('rw_tone_merge_cls_assignment.csv', index=False)
+
+# %%
