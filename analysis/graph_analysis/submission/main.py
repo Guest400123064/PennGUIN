@@ -47,7 +47,7 @@ def draw_partition(
 #       they are PER ARTICLE statistics. So we still need 
 #       to sum them up individually and manually calculate average
 df_edge = df_edge = (
-    pd.read_csv('/home/lgfz1/Projects/pennguin/analysis/graph_analysis/data/rw_top_200_tone_w_org_merge.csv')
+    pd.read_csv('rw_tone_merge.csv')
         .dropna(subset='id2')
         .groupby(['id1', 'id2', 'flag_person', 'flag_company'], as_index=False, sort=False)
             [['co_mentions_sum', 'co_mentions_count']]
