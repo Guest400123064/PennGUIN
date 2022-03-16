@@ -1,5 +1,5 @@
 # %%
-from typing import List, FrozenSet, Tuple, Any, Dict, Union
+from typing import List, FrozenSet, Tuple
 import copy
 import warnings
 
@@ -47,6 +47,38 @@ ppl_set = set(
         .tolist()
 )
 
+# Rename certain nodes (e.g., coref resolution)
+rnm_map = lambda n: {
+    'lady jeannette kagame': 'jeannette kagame',
+    'paul kagame paulkagame': 'paul kagame',
+    'diane shima rwigara': 'diane rwigara'
+}.get(n, n)
+df_edge.loc[:, 'id1'] = df_edge.loc[:, 'id1'].map(rnm_map)
+df_edge.loc[:, 'id2'] = df_edge.loc[:, 'id2'].map(rnm_map)
+
+# Drop nodes within blacklist
+is_drop = lambda n: n in {
+    'james karuhanga',
+    'jean claude ntezimana',
+    'peterson tumwebaze',
+    'juvenal nkusi',
+    'theoneste karenzi',
+    'collins mwai',
+    'ben gasore',
+    'edmund kagire',
+    'sharon kantengwa',
+    'louise umutoni',
+    'philippe mpayimana',
+    'ignatius ssuuna',
+    'gonza muganwa'
+}
+mask_drop = np.logical_or(df_edge.loc[:, 'id1'].map(is_drop), df_edge.loc[:, 'id2'].map(is_drop))
+df_edge = df_edge.loc[~mask_drop]
+
+# Drop self pointing edges
+mask_loop = df_edge.loc[:, 'id1'] == df_edge.loc[:, 'id2']
+df_edge = df_edge.loc[~mask_loop]
+
 # Merge accross articles
 # IMPORTANT: Though there are fields <co_mentions_sum> 
 #   and <co_mentions_count> in the source edge list file, 
@@ -74,7 +106,7 @@ mask_ppl = np.logical_and(
 df_edge_ppl = df_edge.loc[mask_ppl]
 df_edge_org = df_edge.loc[~mask_ppl]
 
-# %%
+
 # Build Igraph Network
 class PeopleNetwork:
     
@@ -206,7 +238,11 @@ mem_ppl = net_ppl.signed_partition(resolution_neg=0.02)
 #       to which the corresponding node is assigned
 node_list = pd.concat([df_edge_org['id1'], df_edge_org['id2']]).unique() 
 edge_list = zip(df_edge_org['id1'], df_edge_org['id2'], df_edge_org['score_average_weighted'])
-g_merge, mem_org = net_ppl.signed_partition_merge_orgs(node_list, edge_list, mem_ppl)
+g_merge, mem_org = net_ppl.signed_partition_merge_orgs(
+    node_list, edge_list, mem_ppl,
+    resolution_pos=0.01,
+    resolution_neg=0.3
+)
 
 # Generate html vis
 net_vis = draw_partition(g_merge, mem_org)
@@ -225,3 +261,5 @@ pd.DataFrame({
     'entity_name': g_merge.vs['name'],
     'cluster': mem_org
 }).to_csv('rw_tone_cls_assignment.csv', index=False)
+
+# %%
