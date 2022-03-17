@@ -91,7 +91,7 @@ class KeyBERTEventExtractor(BaseEventExtractor):
         )
         return {
             'text': text,
-            'events': extract,
+            'events': list(extract),
             'scores': self.softmax(np.array(scores)),
             'cosine': list(scores)
         }
