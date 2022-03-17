@@ -26,10 +26,15 @@ from ._base import BaseEventExtractor
 
 class KeyBERTEventExtractor(BaseEventExtractor):
     
-    def __init__(self, model: str = 'all-MiniLM-L6-v2', top_n_events: int = 4):
-
+    def __init__(
+        self, 
+        model: str = 'all-MiniLM-L6-v2', 
+        top_n_events: int = 4, 
+        temperature: float = 0.05
+    ):
         self._model = KeyBERT(model)
         self._top_n_events = top_n_events
+        self._temperature = temperature
 
     @property
     def model(self):
@@ -38,15 +43,14 @@ class KeyBERTEventExtractor(BaseEventExtractor):
     @property
     def top_n_events(self):
         return self._top_n_events
-    
-    @staticmethod
-    def softmax(x: np.ndarray, t: float = 0.1) -> List[float]:
+
+    def softmax(self, x: np.ndarray) -> List[float]:
         """Regular softmax function, from scores to probabilities. 
-            The temperature parameter <t> is used to sharpen the 
-            distribution. The smaller the value, the sharper the 
-            distribution (closer to 'hard max/normal max')"""
+            The temperature parameter <self._temperature> is used to 
+            sharpen the distribution. The smaller the value, the 
+            sharper the distribution (closer to 'hard max/normal max')"""
         
-        ex = np.exp((x - x.max()) / t)
+        ex = np.exp((x - x.max()) / self._temperature)
         return (ex / ex.sum()).tolist()
     
     # ------------------------------------------------------------------
