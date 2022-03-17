@@ -74,9 +74,9 @@ if __name__ == '__main__':
     
     # Grading
     text = [
-        'There is a war between A and B and several officials are recalled.',
-        'What a nice day!',
-        'A and B meet and discussed about how to resolve the current crisis.'
+        'Disagreements about labor practices between A and B have stalled trade negotiations.',
+        'Relations between A and B are beset by a minefield of disputes across a wide range of issue areas.',
+        'The convention brought together A and B to discuss the mining project\'s environmental impact.'
     ]
     print(grader.grade(text))
 
