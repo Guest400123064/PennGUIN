@@ -69,14 +69,17 @@ if __name__ == '__main__':
         goldstein = json.load(f)
         
     # Init a grader
-    extractor = KeyBERTEventExtractor()
+    extractor = KeyBERTEventExtractor(temperature=0.4)
     grader = GoldsteinGrader(goldstein, extractor)
     
     # Grading
     text = [
         'Disagreements about labor practices between A and B have stalled trade negotiations.',
         'Relations between A and B are beset by a minefield of disputes across a wide range of issue areas.',
-        'The convention brought together A and B to discuss the mining project\'s environmental impact.'
+        'The convention brought together A and B to discuss the mining project\'s environmental impact.',
+        'A and B failed to resolve their disputes across a wide range of issue areas.',
+        'There was disagreement between A and B on which labor practices to implement.',
+        'The disagreement between A and B on labor practices delayed progress in the talks.'
     ]
     print(grader.grade(text))
 
