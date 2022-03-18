@@ -69,7 +69,7 @@ if __name__ == '__main__':
         goldstein = json.load(f)
         
     # Init a grader
-    extractor = KeyBERTEventExtractor(temperature=0.4)
+    extractor = KeyBERTEventExtractor(temperature=0.1)
     grader = GoldsteinGrader(goldstein, extractor)
     
     # Grading
