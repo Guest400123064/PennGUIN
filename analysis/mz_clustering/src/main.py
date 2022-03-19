@@ -1,5 +1,5 @@
 # %%
-from typing import List, FrozenSet, Tuple
+from typing import List, Tuple
 import copy
 import warnings
 
@@ -12,9 +12,11 @@ from pyvis.network import Network as VisNetwork
 
 
 EDGE_LIST_PATH = '../data/mz_edge_0318.csv'
+CLUST_VIS_PATH = '../out/mz_tone_cls.html'
+CLUST_GRP_PATH = '../out/mz_tone_cls_assignment.csv'
 
 
-def draw_partition(g: ig.Graph, partition: List[FrozenSet[int]]) -> VisNetwork:
+def draw_partition(g: ig.Graph, partition: List[int]) -> VisNetwork:
     """Helper function to generate HTML visualizations"""
 
     net = VisNetwork('1024px', '1024px')
@@ -44,8 +46,7 @@ def draw_partition(g: ig.Graph, partition: List[FrozenSet[int]]) -> VisNetwork:
 # Load raw co-mention edge list and get a set of people (for plotting)
 df_edge = pd.read_csv(EDGE_LIST_PATH)
 ppl_set = set(
-    pd.read_csv('rw_ppl_list.csv', usecols=['persons'])
-        .persons.str.lower()
+    df_edge.loc[np.logical_and(df_edge.id2.isna(), df_edge.flag_person == 1), 'id1']
         .unique()
         .tolist()
 )
@@ -225,12 +226,12 @@ for n in ppl_set:
         n = found[0].index
         net_vis.node_map[n]['shape'] = 'square'
     
-net_vis.show('rw_tone_cls.html')
+net_vis.show(CLUST_VIS_PATH)
 
 # Write cluster assignments
 pd.DataFrame({
     'entity_name': g_merge.vs['name'],
     'cluster': mem_org
-}).to_csv('rw_tone_cls_assignment.csv', index=False)
+}).to_csv(CLUST_GRP_PATH, index=False)
 
 # %%
