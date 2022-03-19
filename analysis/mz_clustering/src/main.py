@@ -11,6 +11,9 @@ import leidenalg as la
 from pyvis.network import Network as VisNetwork
 
 
+EDGE_LIST_PATH = '../data/mz_edge_0318.csv'
+
+
 def draw_partition(g: ig.Graph, partition: List[FrozenSet[int]]) -> VisNetwork:
     """Helper function to generate HTML visualizations"""
 
@@ -39,45 +42,13 @@ def draw_partition(g: ig.Graph, partition: List[FrozenSet[int]]) -> VisNetwork:
 
 # ======================================================================================================
 # Load raw co-mention edge list and get a set of people (for plotting)
-df_edge = pd.read_csv('rw_tone_merge.csv')
+df_edge = pd.read_csv(EDGE_LIST_PATH)
 ppl_set = set(
     pd.read_csv('rw_ppl_list.csv', usecols=['persons'])
         .persons.str.lower()
         .unique()
         .tolist()
 )
-
-# Rename certain nodes (e.g., coref resolution)
-rnm_map = lambda n: {
-    'lady jeannette kagame': 'jeannette kagame',
-    'paul kagame paulkagame': 'paul kagame',
-    'diane shima rwigara': 'diane rwigara'
-}.get(n, n)
-df_edge.loc[:, 'id1'] = df_edge.loc[:, 'id1'].map(rnm_map)
-df_edge.loc[:, 'id2'] = df_edge.loc[:, 'id2'].map(rnm_map)
-
-# Drop nodes within blacklist
-is_drop = lambda n: n in {
-    'james karuhanga',
-    'jean claude ntezimana',
-    'peterson tumwebaze',
-    'juvenal nkusi',
-    'theoneste karenzi',
-    'collins mwai',
-    'ben gasore',
-    'edmund kagire',
-    'sharon kantengwa',
-    'louise umutoni',
-    'philippe mpayimana',
-    'ignatius ssuuna',
-    'gonza muganwa'
-}
-mask_drop = np.logical_or(df_edge.loc[:, 'id1'].map(is_drop), df_edge.loc[:, 'id2'].map(is_drop))
-df_edge = df_edge.loc[~mask_drop]
-
-# Drop self pointing edges
-mask_loop = df_edge.loc[:, 'id1'] == df_edge.loc[:, 'id2']
-df_edge = df_edge.loc[~mask_loop]
 
 # Merge accross articles
 # IMPORTANT: Though there are fields <co_mentions_sum> 
