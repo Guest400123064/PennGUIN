@@ -15,13 +15,19 @@ There are two categories of models:
 
 # %%
 from typing import List, Union, Any, Dict
+from abc import ABC, abstractmethod
 
 import numpy as np
 
 from keybert import KeyBERT
 from transformers import pipeline
 
-from ._base import BaseEventExtractor
+
+class BaseEventExtractor(ABC):
+    
+    @abstractmethod
+    def extract(self, texts: Union[List[str], str], events: List[str]) -> List[Dict[str, Any]]:
+        raise NotImplementedError
 
 
 class KeyBERTEventExtractor(BaseEventExtractor):
