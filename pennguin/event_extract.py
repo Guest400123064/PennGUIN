@@ -36,7 +36,7 @@ class KeyBERTEventExtractor(BaseEventExtractor):
         self, 
         model: str = 'all-MiniLM-L6-v2', 
         top_n_events: int = 4, 
-        temperature: float = 0.05
+        temperature: float = 0.1
     ):
         self._model = KeyBERT(model)
         self._top_n_events = top_n_events
