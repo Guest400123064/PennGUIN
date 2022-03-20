@@ -11,7 +11,7 @@ import leidenalg as la
 from pyvis.network import Network as VisNetwork
 
 
-EDGE_LIST_PATH = '../data/mz_edge_0318.csv'
+EDGE_LIST_PATH = '../data/mz_edge_quote.csv'
 CLUST_VIS_PATH = '../out/mz_tone_cls.html'
 CLUST_GRP_PATH = '../out/mz_tone_cls_assignment.csv'
 
