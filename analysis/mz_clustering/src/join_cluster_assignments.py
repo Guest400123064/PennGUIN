@@ -6,8 +6,8 @@ import pandas as pd
 #   since the cluster assignments for them could be NaN
 #   If the singletons are not-at-all co-mentioned, they 
 #   will not participate graph-clustering
-df_edges = pd.read_csv('rw_tone_merge.csv').dropna(subset='id2')
-df_assign = pd.read_csv('rw_tone_cls_assignment.csv')
+df_edges = pd.read_csv('../data/mz_edge_quote.csv').dropna(subset='id2')
+df_assign = pd.read_csv('../out/mz_tone_cls_assignment.csv')
 
 # Merge id1
 df_join = pd.merge(
@@ -24,6 +24,6 @@ df_join = pd.merge(
 ).rename({'cluster': 'id2_cluster'}, axis=1)
 
 # Dump file
-df_join.to_csv('rw_tone_merge_cls_assignment.csv', index=False)
+df_join.to_csv('../out/mz_tone_merge_cls_assignment.csv', index=False)
 
 # %%
