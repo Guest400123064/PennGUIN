@@ -79,7 +79,8 @@ if __name__ == '__main__':
         'The convention brought together A and B to discuss the mining project\'s environmental impact.',
         'A and B failed to resolve their disputes across a wide range of issue areas.',
         'There was disagreement between A and B on which labor practices to implement.',
-        'The disagreement between A and B on labor practices delayed progress in the talks.'
+        'The disagreement between A and B on labor practices delayed progress in the talks.',
+        "France is accused of missing or ignoring the warning signs for the 1994 Rwanda massacre, and sending troops only to counter the Tutsi rebels of Paul Kagame, who is now president The dispute centres on France's role prior to the genocide as a close ally of the Hutu nationalist regime of Juvenal Habyarimana."
     ]
     print(grader.grade(text))
 
