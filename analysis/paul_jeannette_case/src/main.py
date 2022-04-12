@@ -46,7 +46,11 @@ df_edge = df_edge.loc[
 ]
 
 # %%
-# Case 1: low confidence score (cosine) results in inaccurate grading
+# Case 1: 
+#   - low confidence score (cosine) results in inaccurate grading
+# Solution:
+#   - larger language model, e.g., 'all-mpnet-base-v2', performs significantly better.
+#       Especially the models that are trained upon NLI tasks.
 txt_low_conf = [
     'Xi who was flanked by his wife Peng Liyuan was received yesterday by President Paul Kagame and his wife his wife Jeannette Kagame.',
     'Nation World. Rwanda somberly marks the start of genocide 25 years ago. President Paul Kagame and first lady Jeannette Kagame laid wreaths and lit a flame at the mass burial ground of 250,000 victims at the Kigali Genocide Memorial Center in the capital, Kigali.',
@@ -55,17 +59,30 @@ txt_low_conf = [
 ext_low_conf = extractor.extract(txt_low_conf, event_lst)
 pprint(ext_low_conf)
 
-# Case 2: wrong event-comention association; the entities simply 
-#   appears together with the event but without any causal relationship 
+# Case 2: 
+#   - wrong event-comention association; the entities simply 
+#       appears together with the event but without any causal relationship 
 txt_mis_link = [
     'At least 800,000 Tutsi and moderate Hutus murdered during three-month genocide\n            \n\n\n\nSun, Apr 7, 2019, 13:15\nUpdated: Sun, Apr 7, 2019, 13:21\n\n\n\n \n  \n\n  \n\nPresident of Rwanda Paul Kagame (L) and his wife and first lady of Rwanda Jeannette Kagame (R) arrive for a commemoration event.'
 ]
 ext_mis_link = extractor.extract(txt_mis_link, event_lst)
 pprint(ext_mis_link)
 
+# Case 3: 
+#   - mis-classification with relatively high confidence score
+# Solution:
+#   - larger language model, e.g., 'all-mpnet-base-v2', performs significantly better.
+#       Especially the models that are trained upon NLI tasks.
+txt_wrong_high_conf = [
+    'President Xi was welcomed by his Rwandan counterpart, President Paul Kagame, his wife Jeannette Kagame.'
+]
+ext_wrong_high_conf = extractor.extract(txt_wrong_high_conf, event_lst)
+pprint(ext_wrong_high_conf)
+
 # %%
-# Case 3*: noisy text, containing many irrelevant characters; though grading performance is not 
-#   substantially affected.
+# Case 4*: 
+#   - noisy text, containing many irrelevant characters; though grading performance is not 
+#       substantially affected.
 txt_noisy = [
     'SportsLifestyleWellnessPeopleEntertainmentSocietyWeekenderVideoJobs & TendersEpaperPodcast\n\n\n\n\n\n\nTwitter\nFacebook\nEmail\n\n\n\n\n\n\n\n\n\n\n\nSearch form\n\nSearch\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNews\nRwanda, Djibouti sign five bilateral agreements\n\nRwanda and Djibouti yesterday signed five bilateral agreements during the first day of a two-day state visit by President Paul Kagame and First Lady Jeannette Kagame to Djibouti.\n\n\n'.replace('\n', ' ')
 ]
@@ -73,7 +90,7 @@ ext_noisy = extractor.extract(txt_noisy, event_lst)
 pprint(ext_noisy)
 
 # %%
-# Case 4* duplicate sentences. 
+# Case 5* duplicate sentences. 
 # Potential causes: 
 #   - Different name for same entity, e.g., JK & Lady JK
 #   - Duplicate articles, there are duplicate sentences across different article ids.
