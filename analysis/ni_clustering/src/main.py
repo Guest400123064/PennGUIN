@@ -23,7 +23,7 @@ def draw_partition(g: ig.Graph, partition: List[FrozenSet[int]]) -> VisNetwork:
             group=i_grp,
             title=f'Group {i_grp}'
         )
-            
+
     for edge in g.es:
         net.add_edge(
             edge.source, edge.target,
@@ -38,46 +38,29 @@ def draw_partition(g: ig.Graph, partition: List[FrozenSet[int]]) -> VisNetwork:
 
 
 # ======================================================================================================
-# Load raw co-mention edge list and get a set of people (for plotting)
-df_edge = pd.read_csv('rw_tone_merge.csv')
-ppl_set = set(
-    pd.read_csv('rw_ppl_list.csv', usecols=['persons'])
-        .persons.str.lower()
-        .unique()
-        .tolist()
+# Load raw co-mention edge list and get a set of people and org (for plotting)
+df_edge = pd.read_csv('../data/ni_delta_edge_list.csv')
+df_edge.loc[:, 'entity1'] = df_edge.loc[:, 'entity1'].str.title()
+df_edge.loc[:, 'entity2'] = df_edge.loc[:, 'entity2'].str.title()
+
+mask_ppl = np.logical_and(
+    df_edge.loc[:, 'person_flag'] == 1, 
+    df_edge.loc[:, 'org_flag'] == 0
 )
-
-# Rename certain nodes (e.g., coref resolution)
-rnm_map = lambda n: {
-    'lady jeannette kagame': 'jeannette kagame',
-    'paul kagame paulkagame': 'paul kagame',
-    'diane shima rwigara': 'diane rwigara'
-}.get(n, n)
-df_edge.loc[:, 'id1'] = df_edge.loc[:, 'id1'].map(rnm_map)
-df_edge.loc[:, 'id2'] = df_edge.loc[:, 'id2'].map(rnm_map)
-
-# Drop nodes within blacklist
-is_drop = lambda n: n in {
-    'james karuhanga',
-    'jean claude ntezimana',
-    'peterson tumwebaze',
-    'juvenal nkusi',
-    'theoneste karenzi',
-    'collins mwai',
-    'ben gasore',
-    'edmund kagire',
-    'sharon kantengwa',
-    'louise umutoni',
-    'philippe mpayimana',
-    'ignatius ssuuna',
-    'gonza muganwa'
-}
-mask_drop = np.logical_or(df_edge.loc[:, 'id1'].map(is_drop), df_edge.loc[:, 'id2'].map(is_drop))
-df_edge = df_edge.loc[~mask_drop]
-
-# Drop self pointing edges
-mask_loop = df_edge.loc[:, 'id1'] == df_edge.loc[:, 'id2']
-df_edge = df_edge.loc[~mask_loop]
+mask_org = np.logical_and(
+    df_edge.loc[:, 'person_flag'] == 0, 
+    df_edge.loc[:, 'org_flag'] == 1
+)
+ppl_set = set(
+    df_edge.loc[mask_ppl, 'entity1'].str.title()
+).union(set(
+    df_edge.loc[mask_ppl, 'entity2'].str.title()
+))
+org_set = set(
+    df_edge.loc[mask_org, 'entity1'].str.title()
+).union(set(
+    df_edge.loc[mask_org, 'entity2'].str.title()
+))
 
 # Merge accross articles
 # IMPORTANT: Though there are fields <co_mentions_sum> 
@@ -86,23 +69,22 @@ df_edge = df_edge.loc[~mask_loop]
 #   to sum them up individually and manually calculate average
 df_edge = (
     df_edge
-        .dropna(subset='id2')
-        .groupby(['id1', 'id2', 'flag_person', 'flag_company'], as_index=False, sort=False)
-            [['co_mentions_sum', 'co_mentions_count']]
+        .dropna(subset='entity2')
+        .groupby(['entity1', 'entity2', 'person_flag', 'org_flag'], as_index=False, sort=False)
+            [['tone_sum', 'co_mention_count']]
         .sum()
 )
 
+# Filter low number of co-mention, e.g., < 10
+df_edge = df_edge.loc[df_edge.co_mention_count >= 128].reset_index(drop=True)
+
 # Calculate average tone and confidence of estimation (log10 count and normalize to [0, 1])
-df_edge.loc[:, 'score_average']          = df_edge.co_mentions_sum / df_edge.co_mentions_count
-df_edge.loc[:, 'score_confidence']       = np.log(df_edge.co_mentions_count + 1)
+df_edge.loc[:, 'score_average']          = df_edge.tone_sum / df_edge.co_mention_count
+df_edge.loc[:, 'score_confidence']       = np.log(df_edge.co_mention_count + 1)
 df_edge.loc[:, 'score_confidence']       = df_edge.score_confidence / df_edge.score_confidence.max()
 df_edge.loc[:, 'score_average_weighted'] = df_edge.score_average * df_edge.score_confidence
 
 # Filter out people-only edges
-mask_ppl = np.logical_and(
-    df_edge.loc[:, 'flag_person'] == 1, 
-    df_edge.loc[:, 'flag_company'] == 0
-)
 df_edge_ppl = df_edge.loc[mask_ppl]
 df_edge_org = df_edge.loc[~mask_ppl]
 
@@ -229,15 +211,15 @@ class PeopleNetwork:
 
 # %%
 # Clustering over people-co-mentions first
-net_ppl = PeopleNetwork(df_edge_ppl, edge_weight='score_average_weighted')
+net_ppl = PeopleNetwork(df_edge_ppl, 'entity1', 'entity2', edge_weight='score_average_weighted')
 mem_ppl = net_ppl.signed_partition(resolution_neg=0.02)
 
 # Extend existing people-only graph with co-mentions involving companies
 #   <g_merge> is the extended graph
 #   <mem_org> is a list with same length as number of nodes; each element is the cluster id 
 #       to which the corresponding node is assigned
-node_list = pd.concat([df_edge_org['id1'], df_edge_org['id2']]).unique() 
-edge_list = zip(df_edge_org['id1'], df_edge_org['id2'], df_edge_org['score_average_weighted'])
+node_list = pd.concat([df_edge_org['entity1'], df_edge_org['entity2']]).unique() 
+edge_list = zip(df_edge_org['entity1'], df_edge_org['entity2'], df_edge_org['score_average_weighted'])
 g_merge, mem_org = net_ppl.signed_partition_merge_orgs(
     node_list, edge_list, mem_ppl,
     resolution_pos=0.01,
@@ -254,12 +236,12 @@ for n in ppl_set:
         n = found[0].index
         net_vis.node_map[n]['shape'] = 'square'
     
-net_vis.show('rw_tone_cls.html')
+net_vis.show('../out/ni_tone_cls_ppl_org.html')
 
 # Write cluster assignments
 pd.DataFrame({
     'entity_name': g_merge.vs['name'],
     'cluster': mem_org
-}).to_csv('rw_tone_cls_assignment.csv', index=False)
+}).to_csv('../out/ni_tone_cls_ppl_org_assign.csv', index=False)
 
 # %%
