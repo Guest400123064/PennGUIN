@@ -9,11 +9,11 @@ import json
 from pprint import pprint
 
 # Prepare event extractor and grader
-from pennguin import KeyBERTEventExtractor, GoldsteinGrader
+from pennguin import KeyBERTEventExtractor, CrossEncoderEventExtractor, GoldsteinGrader
 with open('../model/goldstein.json') as f:
     goldstein = json.load(f)
     event_lst = list(goldstein.keys())
-    extractor = KeyBERTEventExtractor('all-mpnet-base-v2')
+    extractor = CrossEncoderEventExtractor()
     grader = GoldsteinGrader(goldstein, extractor)
 
 # %%
