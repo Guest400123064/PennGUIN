@@ -152,7 +152,7 @@ class CrossEncoderEventExtractor(BaseEventExtractor):
         temperature: float = 0.1
     ):
         if torch.cuda.is_available():
-            self._model = pipeline('zero-shot-classification', model, batch_size=16, device=0)
+            self._model = pipeline('zero-shot-classification', model, batch_size=8, device=0)
         else:
             self._model = pipeline('zero-shot-classification', model)
         self._top_n_events = top_n_events
