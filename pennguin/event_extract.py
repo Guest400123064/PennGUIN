@@ -19,6 +19,10 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
+import re
+import string
+import unicodedata
+
 from keybert import KeyBERT
 from transformers import pipeline
 
@@ -59,6 +63,24 @@ class KeyBERTEventExtractor(BaseEventExtractor):
         ex = np.exp((x - x.max()) / self._temperature)
         return (ex / ex.sum()).tolist()
     
+    def preprocess(self, s: str) -> str:
+        """String pre-processing function, used to reduce noise.
+            1. Convert all characters to ASCII
+            2. Remove other irrelevant stuff like email address or external url
+            3. Remove special symbols like newline character \\n"""
+            
+        # Normalize special chars
+        s = (unicodedata.normalize('NFKD', s)
+                .encode('ascii', 'ignore').decode())
+
+        # Remove irrelevant info
+        s = re.sub(r'\S*@\S*\s?', '', s)     # Email
+        s = re.sub(r'\S*https?:\S*', '', s)  # URL
+        
+        # Keep punctuation and words only
+        pattern_keep = string.punctuation + string.ascii_letters + string.digits
+        return re.sub(r'[^' + pattern_keep + r']+', '', s)
+    
     # ------------------------------------------------------------------
     def extract(self, texts: Union[List[str], str], events: List[str] = ['[NULL]']) -> List[Dict[str, Any]]:
         """Used to extract most probable events from the given sentence/article
@@ -79,6 +101,7 @@ class KeyBERTEventExtractor(BaseEventExtractor):
                 }
         """
         
+        texts = [self.preprocess(t) for t in texts]
         extractor = self._extract_single
         
         # Direct extraction for single article

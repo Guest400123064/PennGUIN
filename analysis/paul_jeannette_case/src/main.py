@@ -86,7 +86,7 @@ pprint(ext_wrong_high_conf)
 #   - noisy text, containing many irrelevant characters; though grading performance is not 
 #       substantially affected.
 txt_noisy = [
-    'SportsLifestyleWellnessPeopleEntertainmentSocietyWeekenderVideoJobs & TendersEpaperPodcast\n\n\n\n\n\n\nTwitter\nFacebook\nEmail\n\n\n\n\n\n\n\n\n\n\n\nSearch form\n\nSearch\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNews\nRwanda, Djibouti sign five bilateral agreements\n\nRwanda and Djibouti yesterday signed five bilateral agreements during the first day of a two-day state visit by President Paul Kagame and First Lady Jeannette Kagame to Djibouti.\n\n\n'.replace('\n', ' ')
+    'SportsLifestyleWellnessPeopleEntertainmentSocietyWeekenderVideoJobs & TendersEpaperPodcast\n\n\n\n\n\n\nTwitter\nFacebook\nEmail\n\n\n\n\n\n\n\n\n\n\n\nSearch form\n\nSearch\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNews\nRwanda, Djibouti sign five bilateral agreements\n\nRwanda and Djibouti yesterday signed five bilateral agreements during the first day of a two-day state visit by President Paul Kagame and First Lady Jeannette Kagame to Djibouti.\n\n\n'
 ]
 ext_noisy = extractor.extract(txt_noisy, event_lst)
 pprint(ext_noisy)
