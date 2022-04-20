@@ -13,7 +13,7 @@ from pennguin import KeyBERTEventExtractor, GoldsteinGrader
 with open('../model/goldstein.json') as f:
     goldstein = json.load(f)
     event_lst = list(goldstein.keys())
-    extractor = KeyBERTEventExtractor(temperature=0.1)
+    extractor = KeyBERTEventExtractor()
     grader = GoldsteinGrader(goldstein, extractor)
 
 # %%
