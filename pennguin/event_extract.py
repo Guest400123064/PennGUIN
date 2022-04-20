@@ -38,7 +38,7 @@ class KeyBERTEventExtractor(BaseEventExtractor):
     
     def __init__(
         self, 
-        model: str = 'all-MiniLM-L6-v2', 
+        model: str = 'all-MiniLM-L12-v2', 
         top_n_events: int = 4, 
         temperature: float = 0.1
     ):
@@ -78,7 +78,10 @@ class KeyBERTEventExtractor(BaseEventExtractor):
         s = re.sub(r'\S*https?:\S*', '', s)  # URL
         
         # Keep punctuation and words only
-        pattern_keep = string.punctuation + string.ascii_letters + string.digits
+        pattern_keep = (string.punctuation + 
+                            string.ascii_letters + 
+                            string.digits + 
+                            r' ')
         return re.sub(r'[^' + pattern_keep + r']+', '', s)
     
     # ------------------------------------------------------------------
