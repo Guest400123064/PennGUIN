@@ -104,13 +104,14 @@ class KeyBERTEventExtractor(BaseEventExtractor):
                 }
         """
         
-        texts = [self.preprocess(t) for t in texts]
         extractor = self._extract_single
         
         # Direct extraction for single article
         if isinstance(texts, str):
+            texts = self.preprocess(texts)
             return [extractor(texts, events)]
         elif isinstance(texts, list):
+            texts = [self.preprocess(t) for t in texts]
             return [extractor(t, events) for t in texts]
         else:
             raise ValueError('@ KeyBERTEventExtractor.extract() :: ' + 
