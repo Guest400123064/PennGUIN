@@ -59,6 +59,7 @@ txt_low_conf = [
 ext_low_conf = extractor.extract(txt_low_conf, event_lst)
 pprint(ext_low_conf)
 
+# %%
 # Case 2: 
 #   - wrong event-comention association; the entities simply 
 #       appears together with the event but without any causal relationship 
@@ -68,6 +69,7 @@ txt_mis_link = [
 ext_mis_link = extractor.extract(txt_mis_link, event_lst)
 pprint(ext_mis_link)
 
+# %%
 # Case 3: 
 #   - mis-classification with relatively high confidence score
 # Solution:
