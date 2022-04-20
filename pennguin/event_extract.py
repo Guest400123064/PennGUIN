@@ -38,7 +38,7 @@ class KeyBERTEventExtractor(BaseEventExtractor):
     
     def __init__(
         self, 
-        model: str = 'all-MiniLM-L12-v2', 
+        model: str = 'all-mpnet-base-v2', 
         top_n_events: int = 4, 
         temperature: float = 0.1
     ):
