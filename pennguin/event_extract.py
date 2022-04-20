@@ -151,10 +151,10 @@ class CrossEncoderEventExtractor(BaseEventExtractor):
         top_n_events: int = 4,
         temperature: float = 0.1
     ):
-        self._model = pipeline(
-            'zero-shot-classification', model,
-            device=0 if torch.cuda.is_available() else -1
-        )
+        if torch.cuda.is_available():
+            self._model = pipeline('zero-shot-classification', model, batch_size=16, device=0)
+        else:
+            self._model = pipeline('zero-shot-classification', model)
         self._top_n_events = top_n_events
         self._temperature = temperature
 
@@ -245,7 +245,8 @@ class CrossEncoderEventExtractor(BaseEventExtractor):
             'cosine': scores.tolist()
         }
         
-    def _extract_batch(self, texts: Union[List[str], str], events: List[str] = ['[NULL]']) -> List[Dict[str, Any]]:
+    def _extract_batch(self, texts: List[str], events: List[str] = ['[NULL]']) -> List[Dict[str, Any]]:
+        """Batch processing version of extract single"""
         
         output = self.model(texts, events)
         for i, o in enumerate(output):
