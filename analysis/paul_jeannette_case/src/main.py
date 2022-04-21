@@ -21,7 +21,7 @@ with open('../model/goldstein.json') as f:
 #   - 1. lower all ids
 #   - 2. rename
 #   - 3. filtering
-df_edge = pd.read_csv('../data/rw_edge_quote.csv')
+df_edge = pd.read_csv('../data/rw_edge_quote_regrade.csv')
 df_edge.loc[:, 'id1'] = df_edge.loc[:, 'id1'].str.lower()
 df_edge.loc[:, 'id2'] = df_edge.loc[:, 'id2'].str.lower()
 
@@ -42,7 +42,7 @@ mask_paul = np.logical_or(
 )
 df_edge = df_edge.loc[
     np.logical_and(mask_jean, mask_paul), 
-    ['article', 'id1', 'id2', 'avg1', 'sentence']
+    ['article', 'id1', 'id2', 'avg1', 'sentence', 'regrade_score']
 ]
 
 # %%

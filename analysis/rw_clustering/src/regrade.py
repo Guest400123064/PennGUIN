@@ -9,7 +9,7 @@ import json
 from pennguin import KeyBERTEventExtractor, GoldsteinGrader
 with open('../model/goldstein.json') as f:
     goldstein = json.load(f)
-    extractor = KeyBERTEventExtractor('all-mpnet-base-v2')
+    extractor = KeyBERTEventExtractor(temperature=0.1)
     grader = GoldsteinGrader(goldstein, extractor)
 
 # %%

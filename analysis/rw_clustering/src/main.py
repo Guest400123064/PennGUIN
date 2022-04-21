@@ -39,9 +39,9 @@ def draw_partition(g: ig.Graph, partition: List[FrozenSet[int]]) -> VisNetwork:
 
 # ======================================================================================================
 # Load raw co-mention edge list and get a set of people (for plotting)
-df_edge = pd.read_csv('rw_tone_merge.csv')
+df_edge = pd.read_csv('../data/rw_edge_quote_regrade.csv')
 ppl_set = set(
-    pd.read_csv('rw_ppl_list.csv', usecols=['persons'])
+    pd.read_csv('../data/rw_ppl_list.csv', usecols=['persons'])
         .persons.str.lower()
         .unique()
         .tolist()
@@ -79,21 +79,17 @@ df_edge = df_edge.loc[~mask_drop]
 mask_loop = df_edge.loc[:, 'id1'] == df_edge.loc[:, 'id2']
 df_edge = df_edge.loc[~mask_loop]
 
-# Merge accross articles
-# IMPORTANT: Though there are fields <co_mentions_sum> 
-#   and <co_mentions_count> in the source edge list file, 
-#   they are PER ARTICLE statistics. So we still need 
-#   to sum them up individually and manually calculate average
+# Merge accross sentences
 df_edge = (
     df_edge
         .dropna(subset='id2')
         .groupby(['id1', 'id2', 'flag_person', 'flag_company'], as_index=False, sort=False)
-            [['co_mentions_sum', 'co_mentions_count']]
+            [['regrade_score', 'co_mentions_count']]
         .sum()
 )
 
 # Calculate average tone and confidence of estimation (log10 count and normalize to [0, 1])
-df_edge.loc[:, 'score_average']          = df_edge.co_mentions_sum / df_edge.co_mentions_count
+df_edge.loc[:, 'score_average']          = df_edge.regrade_score / df_edge.co_mentions_count
 df_edge.loc[:, 'score_confidence']       = np.log(df_edge.co_mentions_count + 1)
 df_edge.loc[:, 'score_confidence']       = df_edge.score_confidence / df_edge.score_confidence.max()
 df_edge.loc[:, 'score_average_weighted'] = df_edge.score_average * df_edge.score_confidence
@@ -254,12 +250,12 @@ for n in ppl_set:
         n = found[0].index
         net_vis.node_map[n]['shape'] = 'square'
     
-net_vis.show('rw_tone_cls.html')
+net_vis.show('../out/rw_tone_cls_regrade.html')
 
 # Write cluster assignments
 pd.DataFrame({
     'entity_name': g_merge.vs['name'],
     'cluster': mem_org
-}).to_csv('rw_tone_cls_assignment.csv', index=False)
+}).to_csv('../out/rw_tone_cls_assignment_regrade.csv', index=False)
 
 # %%
