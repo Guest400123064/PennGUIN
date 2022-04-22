@@ -63,10 +63,6 @@ org_set = set(
 ))
 
 # Merge accross articles
-# IMPORTANT: Though there are fields <co_mentions_sum> 
-#   and <co_mentions_count> in the source edge list file, 
-#   they are PER ARTICLE statistics. So we still need 
-#   to sum them up individually and manually calculate average
 df_edge = (
     df_edge
         .dropna(subset='entity2')
@@ -76,17 +72,13 @@ df_edge = (
 )
 
 # Filter low number of co-mention, e.g., < 10
-df_edge = df_edge.loc[df_edge.co_mention_count >= 128].reset_index(drop=True)
+df_edge = df_edge.loc[df_edge.co_mention_count >= 100].reset_index(drop=True)
 
 # Calculate average tone and confidence of estimation (log10 count and normalize to [0, 1])
 df_edge.loc[:, 'score_average']          = df_edge.tone_sum / df_edge.co_mention_count
-df_edge.loc[:, 'score_confidence']       = np.log(df_edge.co_mention_count + 1)
+df_edge.loc[:, 'score_confidence']       = np.log(df_edge.co_mention_count)
 df_edge.loc[:, 'score_confidence']       = df_edge.score_confidence / df_edge.score_confidence.max()
 df_edge.loc[:, 'score_average_weighted'] = df_edge.score_average * df_edge.score_confidence
-
-# Filter out people-only edges
-df_edge_ppl = df_edge.loc[mask_ppl]
-df_edge_org = df_edge.loc[~mask_ppl]
 
 
 # Build Igraph Network
@@ -210,16 +202,84 @@ class PeopleNetwork:
         return g_merge, part_pos.membership
 
 # %%
-# Clustering over people-co-mentions first
-net_ppl = PeopleNetwork(df_edge_ppl, 'entity1', 'entity2', edge_weight='score_average_weighted')
+# Filter out people-only edges
+df_edge_ppl = df_edge.loc[mask_ppl]
+df_edge_org = df_edge.loc[mask_org]
+df_edge_mix = df_edge.loc[~mask_ppl]
+
+# Get top ppl
+df_top_ppl = pd.read_csv('../data/ni_top_ppl.csv')
+top_ppl_set = set(df_top_ppl.sort_values('n', ascending=False).persons.head(50).values.tolist())
+mask_top_ppl = np.logical_and(
+    df_edge_ppl.entity1.map(lambda x: x in top_ppl_set),
+    df_edge_ppl.entity2.map(lambda x: x in top_ppl_set)
+)
+
+# Get top org
+df_top_org = pd.read_csv('../data/ni_top_orgs.csv')
+top_org_set = set(df_top_org.sort_values('n', ascending=False).organizations.head(50).values.tolist())
+mask_top_org = np.logical_and(
+    df_edge_org.entity1.map(lambda x: x in top_org_set),
+    df_edge_org.entity2.map(lambda x: x in top_org_set)
+)
+
+# %%
+# People only visualization
+net_ppl = PeopleNetwork(df_edge_ppl[mask_top_ppl], 'entity1', 'entity2', edge_weight='score_average_weighted')
 mem_ppl = net_ppl.signed_partition(resolution_neg=0.02)
+
+# Generate html vis
+net_vis = draw_partition(net_ppl.g, mem_ppl)
+net_vis.show('../out/ni_tone_cls_ppl.html')
+
+# Write cluster assignments
+pd.DataFrame({
+    'entity_name': net_ppl.g.vs['name'],
+    'cluster': mem_ppl
+}).to_csv('../out/ni_tone_cls_ppl_assign.csv', index=False)
+
+# %%
+# Org only visualization
+net_org = PeopleNetwork(df_edge_org[mask_top_org], 'entity1', 'entity2', edge_weight='score_average_weighted')
+mem_org = net_org.signed_partition(resolution_neg=0.02)
+
+# Generate html vis
+net_vis = draw_partition(net_org.g, mem_org)
+net_vis.show('../out/ni_tone_cls_org.html')
+
+# Write cluster assignments
+pd.DataFrame({
+    'entity_name': net_org.g.vs['name'],
+    'cluster': mem_org
+}).to_csv('../out/ni_tone_cls_org_assign.csv', index=False)
+
+# %%
+# Mixed visualization
+# Clustering over people-co-mentions first
+net_ppl = PeopleNetwork(df_edge_ppl[mask_top_ppl], 'entity1', 'entity2', edge_weight='score_average_weighted')
+mem_ppl = net_ppl.signed_partition(resolution_neg=0.02)
+
+# Top mixture
+top_ppl_set = set(df_top_ppl.sort_values('n', ascending=False).persons.head(25).values.tolist())
+top_ppl_set = set(df_top_ppl.sort_values('n', ascending=False).persons.head(25).values.tolist())
+mask_top_mix = np.logical_and(
+    np.logical_or(
+        df_edge_mix.entity1.map(lambda x: x in top_ppl_set),
+        df_edge_mix.entity1.map(lambda x: x in top_org_set)
+    ),
+    np.logical_or(
+        df_edge_mix.entity2.map(lambda x: x in top_ppl_set),
+        df_edge_mix.entity2.map(lambda x: x in top_org_set)
+    )
+)
+df_edge_mix = df_edge_mix[mask_top_mix]
 
 # Extend existing people-only graph with co-mentions involving companies
 #   <g_merge> is the extended graph
 #   <mem_org> is a list with same length as number of nodes; each element is the cluster id 
 #       to which the corresponding node is assigned
-node_list = pd.concat([df_edge_org['entity1'], df_edge_org['entity2']]).unique() 
-edge_list = zip(df_edge_org['entity1'], df_edge_org['entity2'], df_edge_org['score_average_weighted'])
+node_list = pd.concat([df_edge_mix['entity1'], df_edge_mix['entity2']]).unique() 
+edge_list = zip(df_edge_mix['entity1'], df_edge_mix['entity2'], df_edge_mix['score_average_weighted'])
 g_merge, mem_org = net_ppl.signed_partition_merge_orgs(
     node_list, edge_list, mem_ppl,
     resolution_pos=0.01,
