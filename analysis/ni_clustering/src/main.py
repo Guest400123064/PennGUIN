@@ -72,7 +72,7 @@ df_edge = (
 )
 
 # Filter low number of co-mention, e.g., < 10
-df_edge = df_edge.loc[df_edge.co_mention_count >= 100].reset_index(drop=True)
+df_edge = df_edge.loc[df_edge.co_mention_count >= 1000].reset_index(drop=True)
 
 # Calculate average tone and confidence of estimation (log10 count and normalize to [0, 1])
 df_edge.loc[:, 'score_average']          = df_edge.tone_sum / df_edge.co_mention_count
@@ -255,13 +255,16 @@ pd.DataFrame({
 
 # %%
 # Mixed visualization
-# Clustering over people-co-mentions first
-net_ppl = PeopleNetwork(df_edge_ppl[mask_top_ppl], 'entity1', 'entity2', edge_weight='score_average_weighted')
-mem_ppl = net_ppl.signed_partition(resolution_neg=0.02)
 
 # Top mixture
 top_ppl_set = set(df_top_ppl.sort_values('n', ascending=False).persons.head(25).values.tolist())
-top_ppl_set = set(df_top_ppl.sort_values('n', ascending=False).persons.head(25).values.tolist())
+top_org_set = set(df_top_org.sort_values('n', ascending=False).organizations.head(25).values.tolist())
+
+mask_top_ppl = np.logical_and(
+    df_edge_ppl.entity1.map(lambda x: x in top_ppl_set),
+    df_edge_ppl.entity2.map(lambda x: x in top_ppl_set)
+)
+
 mask_top_mix = np.logical_and(
     np.logical_or(
         df_edge_mix.entity1.map(lambda x: x in top_ppl_set),
@@ -273,6 +276,10 @@ mask_top_mix = np.logical_and(
     )
 )
 df_edge_mix = df_edge_mix[mask_top_mix]
+
+# Clustering over people-co-mentions first
+net_ppl = PeopleNetwork(df_edge_ppl[mask_top_ppl], 'entity1', 'entity2', edge_weight='score_average_weighted')
+mem_ppl = net_ppl.signed_partition(resolution_neg=0.02)
 
 # Extend existing people-only graph with co-mentions involving companies
 #   <g_merge> is the extended graph
