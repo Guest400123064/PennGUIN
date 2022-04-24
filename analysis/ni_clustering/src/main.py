@@ -200,6 +200,54 @@ class PeopleNetwork:
         )
         
         return g_merge, part_pos.membership
+    
+# %%
+# Ego network
+ego_ent_set = {'Chevron', 'Shell', 'Exxon', 'Total'}
+
+# Get one-hop entities
+mask_ego = np.logical_or(
+    df_edge.entity1.map(lambda x: x in ego_ent_set),
+    df_edge.entity2.map(lambda x: x in ego_ent_set)
+)
+ego_ent_set = ego_ent_set.union(set(
+    df_edge.loc[mask_ego, 'entity1'].str.title()
+).union(set(
+    df_edge.loc[mask_ego, 'entity2'].str.title()
+)))
+
+# Get two-hop entities
+mask_ego = np.logical_and(
+    df_edge.entity1.map(lambda x: x in ego_ent_set),
+    df_edge.entity2.map(lambda x: x in ego_ent_set)
+)
+# ego_ent_set = ego_ent_set.union(set(
+#     df_edge.loc[mask_ego, 'entity1'].str.title()
+# ).union(set(
+#     df_edge.loc[mask_ego, 'entity2'].str.title()
+# )))
+
+# People only visualization
+net_ego = PeopleNetwork(df_edge[mask_ego], 'entity1', 'entity2', edge_weight='score_average_weighted')
+mem_ego = net_ego.signed_partition(resolution_neg=0.02)
+
+# Generate html vis
+net_vis = draw_partition(net_ego.g, mem_ego)
+for n in ppl_set:
+    
+    # Code peoples to squares and leave companies as dots
+    found = net_ego.g.vs.select(name=n)
+    if len(found) == 1:
+        n = found[0].index
+        net_vis.node_map[n]['shape'] = 'square'
+
+net_vis.show('../out/ni_tone_cls_ego.html')
+
+# Write cluster assignments
+pd.DataFrame({
+    'entity_name': net_ego.g.vs['name'],
+    'cluster': mem_ego
+}).to_csv('../out/ni_tone_cls_ego_assign.csv', index=False)
 
 # %%
 # Filter out people-only edges
