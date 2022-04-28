@@ -11,7 +11,7 @@ import leidenalg as la
 from pyvis.network import Network as VisNetwork
 
 
-def draw_partition(g: ig.Graph, partition: List[FrozenSet[int]]) -> VisNetwork:
+def draw_partition(g: ig.Graph, partition: List[FrozenSet[int]], cutoff: float = 0) -> VisNetwork:
     """Helper function to generate HTML visualizations"""
 
     net = VisNetwork('1024px', '1024px')
@@ -29,7 +29,7 @@ def draw_partition(g: ig.Graph, partition: List[FrozenSet[int]]) -> VisNetwork:
             edge.source, edge.target,
             title=round(edge['edge_weight'], 2),
             value=abs(edge['edge_weight']),
-            color='red' if (edge['edge_weight'] < 0) else 'blue'
+            color='red' if (edge['edge_weight'] < cutoff) else 'blue'
         )
 
     net.repulsion(central_gravity=0.1, spring_length=512)
@@ -203,7 +203,8 @@ class PeopleNetwork:
     
 # %%
 # Ego network
-ego_ent_set = {'Chevron', 'Shell', 'Exxon', 'Total'}
+seed_ent = 'Exxon' # 'Chevron', 'Shell', 'Exxon'
+ego_ent_set = {seed_ent}
 
 # Get one-hop entities
 mask_ego = np.logical_or(
@@ -221,18 +222,13 @@ mask_ego = np.logical_and(
     df_edge.entity1.map(lambda x: x in ego_ent_set),
     df_edge.entity2.map(lambda x: x in ego_ent_set)
 )
-# ego_ent_set = ego_ent_set.union(set(
-#     df_edge.loc[mask_ego, 'entity1'].str.title()
-# ).union(set(
-#     df_edge.loc[mask_ego, 'entity2'].str.title()
-# )))
 
 # People only visualization
 net_ego = PeopleNetwork(df_edge[mask_ego], 'entity1', 'entity2', edge_weight='score_average_weighted')
 mem_ego = net_ego.signed_partition(resolution_neg=0.02)
 
 # Generate html vis
-net_vis = draw_partition(net_ego.g, mem_ego)
+net_vis = draw_partition(net_ego.g, mem_ego, -1)
 for n in ppl_set:
     
     # Code peoples to squares and leave companies as dots
@@ -241,13 +237,13 @@ for n in ppl_set:
         n = found[0].index
         net_vis.node_map[n]['shape'] = 'square'
 
-net_vis.show('../out/ni_tone_cls_ego.html')
+net_vis.show(f'../out/ni_tone_cls_{seed_ent}.html')
 
 # Write cluster assignments
 pd.DataFrame({
     'entity_name': net_ego.g.vs['name'],
     'cluster': mem_ego
-}).to_csv('../out/ni_tone_cls_ego_assign.csv', index=False)
+}).to_csv(f'../out/ni_tone_cls_{seed_ent}_assign.csv', index=False)
 
 # %%
 # Filter out people-only edges
