@@ -158,7 +158,7 @@ class HuggingfaceZeroShotEventExtractor(BaseEventExtractor):
     
     def __init__(
         self, 
-        model: str = 'cross-encoder/nli-MiniLM2-L6-H768', 
+        model: str = 'valhalla/distilbart-mnli-12-1', 
         top_n_events: int = 4,
         temperature: float = 0.1,
         batch_size: int = 32

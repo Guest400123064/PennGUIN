@@ -2,7 +2,7 @@
 # =============================================================================
 # Author: Yuxuan Wang
 # Email: wangy49@seas.upenn.edu
-# Date: 02-10-2022
+# Date: 05-27-2022
 # =============================================================================
 """
 This module implements event graders that takes an event grading schema (such as 
@@ -14,7 +14,7 @@ This module implements event graders that takes an event grading schema (such as
 
 # %%
 from typing import Dict, List, Union, Any
-from .event_extract import BaseEventExtractor, KeyBERTEventExtractor
+from event_extract import BaseEventExtractor, HuggingfaceZeroShotEventExtractor
 
 
 class GoldsteinGrader:
@@ -41,7 +41,7 @@ class GoldsteinGrader:
     
     def _grade_extract(self, extract: Dict[str, Any]) -> float:
         
-        ret = zip(extract['events'], extract['scores'])
+        ret = zip(extract['events'], extract['std_scores'])
         src = sum((self.grader(e) * s) for (e, s) in ret)
         return src
 
@@ -62,11 +62,11 @@ if __name__ == '__main__':
     import json
     
     # Load grade table
-    with open('goldstein.json') as f:
+    with open('../models/goldstein.json') as f:
         goldstein = json.load(f)
         
     # Init a grader
-    extractor = KeyBERTEventExtractor(temperature=0.1)
+    extractor = HuggingfaceZeroShotEventExtractor()
     grader = GoldsteinGrader(goldstein, extractor)
     
     # Grading
