@@ -259,8 +259,8 @@ class HuggingfaceZeroShotEventExtractor(BaseEventExtractor):
                 'raw_scores': scores.tolist()
             }
         return outputs
-    
-    
+
+
 class GoldsteinGrader:
     
     def __init__(self, goldstein_grade: Dict[str, float], event_extractor: BaseEventExtractor):
