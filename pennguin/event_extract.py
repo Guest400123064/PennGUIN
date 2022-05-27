@@ -133,17 +133,9 @@ class KeyBERTEventExtractor(BaseEventExtractor):
             'scores': self.softmax(np.array(scores)),
             'cosine': list(scores)
         }
-        
-        
-class BARTEventExtractor(BaseEventExtractor):
-    
-    def __init__(self, model: str = 'facebook/bart-large-mnli', top_n_events: int = 4):
-
-        self._model = pipeline('zero-shot-classification', model)
-        self._top_n_events = top_n_events
 
 
-class CrossEncoderEventExtractor(BaseEventExtractor):
+class HuggingFaceZeroShotEventExtractor(BaseEventExtractor):
     
     def __init__(
         self, 
