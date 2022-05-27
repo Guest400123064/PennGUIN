@@ -54,7 +54,7 @@ class BaseEventExtractor(ABC):
             events (List[str]): list of possible events
 
         Raises:
-            ValueError: Invalid article input type.
+            ValueError: invalid article input type.
 
         Returns:
             List[Dict[str, Any]]: extracted events stored in dictionaries of format:
@@ -287,6 +287,25 @@ class GoldsteinGrader:
         
     # -------------------------------------------------------------
     def grade(self, texts: Union[List[str], str]) -> List[Dict[str, Any]]:
+        """Grade (co-mention) texts based on possible events involved.
+
+        Args:
+            texts (Union[List[str], str]): input sentences such as news article.
+
+        Raises:
+            ValueError: invalid article input type.
+
+        Returns:
+            List[Dict[str, Any]]: extracted events and Goldstein scores stored in dictionaries of format:
+                
+                {
+                    'text': <input text>,
+                    'events': <list of top possible events>,
+                    'std_scores': <(Normalized) The float numbers denote the 'likelihood' of that corresponding event>,
+                    'raw_scores': <Raw predictions directly from the model>,
+                    'goldstein': <Goldstein score>
+                }
+        """
         
         if isinstance(texts, str):
             texts = [texts]
@@ -296,13 +315,18 @@ class GoldsteinGrader:
             raise ValueError('@ GoldsteinGrader.grade() :: ' + 
                 f'Invalid <texts> type {type(texts)}; only <str, List[str]> allowed')
     
+        # Detect events and grade based on scale table
         extract = self.extractor.extract(texts, self.events)
         return [self._calc_score(ex) for ex in extract]
     
     def _calc_score(self, extract: Dict[str, Any]) -> float:
+        """Calculate weighted average of the event `sentiment scores` according to the 
+            Goldstein Scale and confidence of the event detected (i.e., how likely is the
+            given text mentioning a particular event)"""
         
         ret = zip(extract['events'], extract['std_scores'])
-        return extract.update({'goldstein': sum((self.grader(e) * c) for (e, c) in ret)})
+        extract.update({'goldstein': sum((self.grader(e) * c) for (e, c) in ret)})
+        return extract
 
 
 # Sample usage
