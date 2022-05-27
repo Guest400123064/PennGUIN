@@ -5,12 +5,19 @@
 # Date: 05-27-2022
 # =============================================================================
 """
-This module implements helper classes to extract events. The problem 
-    is formalized as a zero-shot text classification task. 
+This module implements helper classes to detect events. The problem 
+    is formalized as a zero-shot-text-classification task. Specifically, given
+    any input text that (potentially) describes some events, we try to classify 
+    which particular event the input text is describing.
     
 There are two categories of models: 
     - Cross-encoder: potentially high acc but low speed (when too many possible events).
-    - Bi-encoder: potentially low acc but high speed.
+    - Bi-encoder: potentially low acc but high speed. 
+    
+Note that the current implementation of the Bi-encoder extractor relies
+    on KeyBERT backend which DO NOT have caching or batch-processing mechanisms. Thus, 
+    the speed for running the two backends are similar. In the future, we may implement 
+    batch processing pipelines directly using SentenceBERT.
 """
 
 # %%
@@ -94,9 +101,17 @@ class KeyBERTEventExtractor(BaseEventExtractor):
         top_n_events: int = 4, 
         temperature: float = 0.03
     ):
+        self._model_card = model
         self._model = KeyBERT(model)
         self._top_n_events = top_n_events
         self._temperature = temperature
+        
+    def __repr__(self):
+        return f'KeyBERTEventExtractor("{self.model_card}", {self.top_n_events}, {self.temperature})'
+        
+    @property
+    def model_card(self):
+        return self._model_card
 
     @property
     def model(self):
@@ -148,6 +163,7 @@ class HuggingfaceZeroShotEventExtractor(BaseEventExtractor):
         temperature: float = 0.1,
         batch_size: int = 32
     ):
+        self._model_card = model
         self._model = pipeline(
             'zero-shot-classification', model, 
             device=(0 if torch.cuda.is_available() else -1)  # Using the first GPU only
@@ -155,6 +171,13 @@ class HuggingfaceZeroShotEventExtractor(BaseEventExtractor):
         self._top_n_events = top_n_events
         self._temperature = temperature
         self._batch_size = batch_size
+        
+    def __repr__(self):
+        return f'HuggingfaceZeroShotEventExtractor("{self.model_card}", {self.top_n_events}, {self.temperature}, {self.batch_size})'
+        
+    @property
+    def model_card(self):
+        return self._model_card
 
     @property
     def model(self):
