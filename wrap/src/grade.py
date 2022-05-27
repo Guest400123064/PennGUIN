@@ -39,19 +39,16 @@ class GoldsteinGrader:
             raise ValueError('@ GoldsteinGrader.extract() :: ' + 
                 f'Invalid <texts> type {type(texts)}; only <str, List[str]> allowed')
     
-    
     def _grade_extract(self, extract: Dict[str, Any]) -> float:
         
         ret = zip(extract['events'], extract['scores'])
         src = sum((self.grader(e) * s) for (e, s) in ret)
         return src
 
-
     def _grade_single(self, text: str) -> float:
         
         extract = self.extractor.extract(text, self.events)[0]
         return self._grade_extract(extract)
-    
     
     def _grade_multi(self, texts: List[str]) -> List[float]:
         

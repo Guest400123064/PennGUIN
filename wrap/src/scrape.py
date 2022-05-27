@@ -102,11 +102,6 @@ class NewsScraper:
         if html is None:
             return (None, EMPTY_TEXT)
         return (html, self.html2doc(html))
-    
-    
-    def _fetch_tra(self, url: str) -> Tuple[str, str]:
-        
-        return (EMPTY_HTML, EMPTY_TEXT)
 
 # %%
 # Sample usage

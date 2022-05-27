@@ -43,7 +43,7 @@ class AllenCorefPredictor:
     # -------------------------------------------------------------------------
     def resolve(self, texts: Union[List[str], str]) -> List[str]:
         """API for co-reference resolution using `allennlp` backend. 
-            Given a single or a list of articles, performe coref resolution 
+            Given a single or a list of articles, perform coref resolution 
             with pre-trained model by AllenNLP.
 
         Args:

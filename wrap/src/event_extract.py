@@ -2,7 +2,7 @@
 # =============================================================================
 # Author: Yuxuan Wang
 # Email: wangy49@seas.upenn.edu
-# Date: 02-09-2022
+# Date: 05-27-2022
 # =============================================================================
 """
 This module implements helper classes to extract events. The problem 
@@ -16,6 +16,7 @@ There are two categories of models:
 # %%
 from typing import List, Union, Any, Dict
 from abc import ABC, abstractmethod
+from pprint import pprint
 
 import numpy as np
 
@@ -26,13 +27,63 @@ import unicodedata
 import torch
 from keybert import KeyBERT
 from transformers import pipeline
+from datasets import Dataset
 
 
 class BaseEventExtractor(ABC):
     
     @abstractmethod
     def extract(self, texts: Union[List[str], str], events: List[str]) -> List[Dict[str, Any]]:
+        """Used to extract most probable events from the given sentence/article
+
+        Args:
+            texts (Union[List[str], str]): input sentences such as news article.
+            events (List[str]): list of possible events
+
+        Raises:
+            ValueError: Invalid article input type.
+
+        Returns:
+            List[Dict[str, Any]]: extracted events stored in dictionaries of format:
+                
+                {
+                    'text': <input text>,
+                    'events': <list of top possible events>,
+                    'std_scores': <(Normalized) The float numbers denote the 'likelihood' of that corresponding event>,
+                    'raw_scores': <Raw predictions directly from the model>
+                }
+        """
         raise NotImplementedError
+    
+    def softmax(self, x: np.ndarray, t: float) -> List[float]:
+        """Regular softmax function, from scores to probabilities. 
+            The temperature parameter <t> is used to 
+            sharpen the distribution. The smaller the value, the 
+            sharper the distribution (closer to 'hard max/normal max')"""
+        
+        ex = np.exp((x - x.max()) / t)
+        return (ex / ex.sum()).tolist()
+    
+    def preprocess(self, s: str) -> str:
+        """String pre-processing function, used to reduce noise.
+            1. Convert all characters to ASCII
+            2. Remove other irrelevant stuff like email address or external url
+            3. Remove special symbols like newline character \\n"""
+            
+        # Normalize special chars
+        s = (unicodedata.normalize('NFKD', s)
+                .encode('ascii', 'ignore').decode())
+
+        # Remove irrelevant info
+        s = re.sub(r'\S*@\S*\s?', '', s)     # Email
+        s = re.sub(r'\S*https?:\S*', '', s)  # URL
+        
+        # Keep punctuation and words only
+        pattern_keep = (string.punctuation + 
+                            string.ascii_letters + 
+                            string.digits + 
+                            r' ')
+        return re.sub(r'[^' + pattern_keep + r']+', '', s)
 
 
 class KeyBERTEventExtractor(BaseEventExtractor):
@@ -54,56 +105,14 @@ class KeyBERTEventExtractor(BaseEventExtractor):
     @property
     def top_n_events(self):
         return self._top_n_events
-
-    def softmax(self, x: np.ndarray) -> List[float]:
-        """Regular softmax function, from scores to probabilities. 
-            The temperature parameter <self._temperature> is used to 
-            sharpen the distribution. The smaller the value, the 
-            sharper the distribution (closer to 'hard max/normal max')"""
-        
-        ex = np.exp((x - x.max()) / self._temperature)
-        return (ex / ex.sum()).tolist()
     
-    def preprocess(self, s: str) -> str:
-        """String pre-processing function, used to reduce noise.
-            1. Convert all characters to ASCII
-            2. Remove other irrelevant stuff like email address or external url
-            3. Remove special symbols like newline character \\n"""
-            
-        # Normalize special chars
-        s = (unicodedata.normalize('NFKD', s)
-                .encode('ascii', 'ignore').decode())
-
-        # Remove irrelevant info
-        s = re.sub(r'\S*@\S*\s?', '', s)     # Email
-        s = re.sub(r'\S*https?:\S*', '', s)  # URL
-        
-        # Keep punctuation and words only
-        pattern_keep = (string.punctuation + 
-                            string.ascii_letters + 
-                            string.digits + 
-                            r' ')
-        return re.sub(r'[^' + pattern_keep + r']+', '', s)
+    @property
+    def temperature(self):
+        return self._temperature
     
     # ------------------------------------------------------------------
     def extract(self, texts: Union[List[str], str], events: List[str] = ['[NULL]']) -> List[Dict[str, Any]]:
-        """Used to extract most probable events from the given sentence/article
-
-        Args:
-            texts (Union[List[str], str]): input sentences such as news article.
-            events (List[str]): list of possible events
-
-        Raises:
-            ValueError: Invalid article input type.
-
-        Returns:
-            List[Dict[str, Any]]: extracted events stored in dictionaries of format:
-                
-                {
-                    'events': <list of top possible events>,
-                    'scores': <The float numbers denote the 'likelihood' of that corresponding event>
-                }
-        """
+        """Implementation using KeyBERT backend"""
         
         extractor = self._extract_single
         
@@ -118,37 +127,34 @@ class KeyBERTEventExtractor(BaseEventExtractor):
             raise ValueError('@ KeyBERTEventExtractor.extract() :: ' + 
                 f'Invalid <texts> type {type(texts)}; only <str, List[str]> allowed')
     
-    
     def _extract_single(self, text: str, events: List[str] = ['[NULL]']) -> Dict[str, Any]:
         """Driver used to extract events from a single article/sentence"""
 
-        extract, scores = zip(
-            *self.model.extract_keywords(
-                text, candidates=events, top_n=self.top_n_events
-            )
-        )
+        extract, scores = zip(*self.model.extract_keywords(text, candidates=events, top_n=self.top_n_events))
         return {
             'text': text,
             'events': list(extract),
-            'scores': self.softmax(np.array(scores)),
-            'cosine': list(scores)
+            'std_scores': self.softmax(np.array(scores), self.temperature),
+            'raw_scores': list(scores)
         }
 
 
-class HuggingFaceZeroShotEventExtractor(BaseEventExtractor):
+class HuggingfaceZeroShotEventExtractor(BaseEventExtractor):
     
     def __init__(
         self, 
         model: str = 'cross-encoder/nli-MiniLM2-L6-H768', 
         top_n_events: int = 4,
-        temperature: float = 0.1
+        temperature: float = 0.1,
+        batch_size: int = 32
     ):
-        if torch.cuda.is_available():
-            self._model = pipeline('zero-shot-classification', model, batch_size=8, device=0)
-        else:
-            self._model = pipeline('zero-shot-classification', model)
+        self._model = pipeline(
+            'zero-shot-classification', model, 
+            device=(0 if torch.cuda.is_available() else -1)  # Using the first GPU only
+        )
         self._top_n_events = top_n_events
         self._temperature = temperature
+        self._batch_size = batch_size
 
     @property
     def model(self):
@@ -161,68 +167,29 @@ class HuggingFaceZeroShotEventExtractor(BaseEventExtractor):
     @property
     def top_n_events(self):
         return self._top_n_events
-
-    def softmax(self, x: np.ndarray) -> List[float]:
-        """Regular softmax function, from scores to probabilities. 
-            The temperature parameter <self._temperature> is used to 
-            sharpen the distribution. The smaller the value, the 
-            sharper the distribution (closer to 'hard max/normal max')"""
-        
-        ex = np.exp((x - x.max()) / self._temperature)
-        return (ex / ex.sum()).tolist()
     
-    def preprocess(self, s: str) -> str:
-        """String pre-processing function, used to reduce noise.
-            1. Convert all characters to ASCII
-            2. Remove other irrelevant stuff like email address or external url
-            3. Remove special symbols like newline character \\n"""
-            
-        # Normalize special chars
-        s = (unicodedata.normalize('NFKD', s)
-                .encode('ascii', 'ignore').decode())
-
-        # Remove irrelevant info
-        s = re.sub(r'\S*@\S*\s?', '', s)     # Email
-        s = re.sub(r'\S*https?:\S*', '', s)  # URL
-        
-        # Keep punctuation and words only
-        pattern_keep = (string.punctuation + 
-                            string.ascii_letters + 
-                            string.digits + 
-                            r' ')
-        return re.sub(r'[^' + pattern_keep + r']+', '', s)
+    @property
+    def temperature(self):
+        return self._temperature
     
-    # ------------------------------------------------------------------
+    @property
+    def batch_size(self):
+        return self._batch_size
+    
+    # -----------------------------------------------------------------------------------
     def extract(self, texts: Union[List[str], str], events: List[str] = ['[NULL]']) -> List[Dict[str, Any]]:
-        """Used to extract most probable events from the given sentence/article
-
-        Args:
-            texts (Union[List[str], str]): input sentences such as news article.
-            events (List[str]): list of possible events
-
-        Raises:
-            ValueError: Invalid article input type.
-
-        Returns:
-            List[Dict[str, Any]]: extracted events stored in dictionaries of format:
-                
-                {
-                    'events': <list of top possible events>,
-                    'scores': <The float numbers denote the 'likelihood' of that corresponding event>
-                }
-        """
+        """Implementation using Huggingface ZeroShotClassification pipeline as the backend"""
         
         # Direct extraction for single article
         if isinstance(texts, str):
-            texts = [self.preprocess(texts)]
+            texts = self.preprocess(texts)
             return [self._extract_single(texts, events)]
         elif isinstance(texts, list):
             texts = [self.preprocess(t) for t in texts]
             return self._extract_batch(texts, events)
         else:
-            raise ValueError('@ CrossEncoderEventExtractor.extract() :: ' + 
+            raise ValueError('@ HuggingfaceZeroShotEventExtractor.extract() :: ' + 
                 f'Invalid <texts> type {type(texts)}; only <str, List[str]> allowed')
-    
     
     def _extract_single(self, text: str, events: List[str] = ['[NULL]']) -> Dict[str, Any]:
         """Driver used to extract events from a single article/sentence"""
@@ -233,23 +200,57 @@ class HuggingFaceZeroShotEventExtractor(BaseEventExtractor):
         return {
             'text': text,
             'events': output['labels'][:self.top_n_events],
-            'scores': self.softmax(scores),
-            'cosine': scores.tolist()
+            'std_scores': self.softmax(scores, self.temperature),
+            'raw_scores': scores.tolist()
         }
         
     def _extract_batch(self, texts: List[str], events: List[str] = ['[NULL]']) -> List[Dict[str, Any]]:
         """Batch processing version of extract single"""
         
-        output = self.model(texts, events)
-        for i, o in enumerate(output):
+        # Helper function for batched inference
+        def _predict(batch, pipe, labels):
+            return {'outputs': pipe(batch['texts'], candidate_labels=labels)}
+        
+        # Create a huggingface dataset for batched processing
+        outputs = (Dataset
+            .from_dict({'texts': texts})
+            .map(_predict, batched=True, batch_size=self.batch_size, 
+                    fn_kwargs={'labels': events, 'pipe': self.model})
+            .to_dict()
+            .get('outputs'))
+        
+        # Cut off to top-n-events & normalize scores
+        for i, o in enumerate(outputs):
             scores = np.array(o['scores'][:self.top_n_events])
             scores = scores / scores.sum()
-            output[i] = {
+            outputs[i] = {
                 'text': o['sequence'],
                 'events': o['labels'][:self.top_n_events],
-                'scores': self.softmax(scores),
-                'cosine': scores.tolist()
+                'std_scores': self.softmax(scores, self.temperature),
+                'raw_scores': scores.tolist()
             }
-        return output
+        return outputs
+
+# Sample usage
+if __name__ == '__main__':
+    
+    sample_events = [
+        'military attack',
+        'cut off assistance',
+        'arrest person',
+        'explain or state policy',
+        'appeal to',
+        'ask for material assistance',
+        'extend economic aid',
+        'loan'
+    ]
+    sample_texts = [
+        'Xi who was flanked by his wife Peng Liyuan was received yesterday by President Paul Kagame and his wife his wife Jeannette Kagame.',
+        'Nation World. Rwanda somberly marks the start of genocide 25 years ago. President Paul Kagame and first lady Jeannette Kagame laid wreaths and lit a flame at the mass burial ground of 250,000 victims at the Kigali Genocide Memorial Center in the capital, Kigali.',
+        'There is broad agreement that this success is attributable in large measure to the strong leadership and dedication of President Paul Kagame and the First Lady of Rwanda, Mrs Jeannette Kagame through her Imbuto Foundation, all underpinned by robust and innovative Government programmes, broad involvement of all the stakeholders and communities as well as adequate external support.'
+    ]
+    
+    extractor = HuggingfaceZeroShotEventExtractor()
+    pprint(extractor.extract(sample_texts, sample_events))
 
 # %%
