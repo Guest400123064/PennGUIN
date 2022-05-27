@@ -18,6 +18,11 @@ Note that the current implementation of the Bi-encoder extractor relies
     on KeyBERT backend which DO NOT have caching or batch-processing mechanisms. Thus, 
     the speed for running the two backends are similar. In the future, we may implement 
     batch processing pipelines directly using SentenceBERT.
+    
+Aside from event extractor, there is also a GoldsteinGrader class. It takes Goldstein 
+    Event Scale <http://web.pdx.edu/~kinsella/jgscale.html> and a 
+    event extractor. Then, the grader will calculate an average 'tone' grade weighted 
+    by confidence scores (likelihood of event being mentioned).
 """
 
 # %%
@@ -25,11 +30,12 @@ from typing import List, Union, Any, Dict
 from abc import ABC, abstractmethod
 from pprint import pprint
 
-import numpy as np
-
 import re
+import json
 import string
 import unicodedata
+
+import numpy as np
 
 import torch
 from keybert import KeyBERT
@@ -253,27 +259,75 @@ class HuggingfaceZeroShotEventExtractor(BaseEventExtractor):
                 'raw_scores': scores.tolist()
             }
         return outputs
+    
+    
+class GoldsteinGrader:
+    
+    def __init__(self, goldstein_grade: Dict[str, float], event_extractor: BaseEventExtractor):
+        self._grade_dict = goldstein_grade
+        self._grader = lambda e: goldstein_grade[e]
+        self._events = list(goldstein_grade.keys())
+        self._extractor = event_extractor
+
+    @property
+    def extractor(self):
+        return self._extractor
+    
+    @property
+    def events(self):
+        return self._events
+    
+    @property
+    def grade_dict(self):
+        return self._grade_dict
+    
+    @property
+    def grader(self):
+        return self._grader
+        
+    # -------------------------------------------------------------
+    def grade(self, texts: Union[List[str], str]) -> List[Dict[str, Any]]:
+        
+        if isinstance(texts, str):
+            texts = [texts]
+        elif isinstance(texts, list):
+            texts = texts
+        else:
+            raise ValueError('@ GoldsteinGrader.grade() :: ' + 
+                f'Invalid <texts> type {type(texts)}; only <str, List[str]> allowed')
+    
+        extract = self.extractor.extract(texts, self.events)
+        return [self._calc_score(ex) for ex in extract]
+    
+    def _calc_score(self, extract: Dict[str, Any]) -> float:
+        
+        ret = zip(extract['events'], extract['std_scores'])
+        return extract.update({'goldstein': sum((self.grader(e) * c) for (e, c) in ret)})
+
 
 # Sample usage
 if __name__ == '__main__':
     
-    sample_events = [
-        'military attack',
-        'cut off assistance',
-        'arrest person',
-        'explain or state policy',
-        'appeal to',
-        'ask for material assistance',
-        'extend economic aid',
-        'loan'
-    ]
     sample_texts = [
         'Xi who was flanked by his wife Peng Liyuan was received yesterday by President Paul Kagame and his wife his wife Jeannette Kagame.',
         'Nation World. Rwanda somberly marks the start of genocide 25 years ago. President Paul Kagame and first lady Jeannette Kagame laid wreaths and lit a flame at the mass burial ground of 250,000 victims at the Kigali Genocide Memorial Center in the capital, Kigali.',
-        'There is broad agreement that this success is attributable in large measure to the strong leadership and dedication of President Paul Kagame and the First Lady of Rwanda, Mrs Jeannette Kagame through her Imbuto Foundation, all underpinned by robust and innovative Government programmes, broad involvement of all the stakeholders and communities as well as adequate external support.'
+        'There is broad agreement that this success is attributable in large measure to the strong leadership and dedication of President Paul Kagame and the First Lady of Rwanda, Mrs Jeannette Kagame through her Imbuto Foundation, all underpinned by robust and innovative Government programmes, broad involvement of all the stakeholders and communities as well as adequate external support.',
+        'Disagreements about labor practices between A and B have stalled trade negotiations.',
+        'Relations between A and B are beset by a minefield of disputes across a wide range of issue areas.',
+        'The convention brought together A and B to discuss the mining project\'s environmental impact.',
+        'A and B failed to resolve their disputes across a wide range of issue areas.',
+        'There was disagreement between A and B on which labor practices to implement.',
+        'The disagreement between A and B on labor practices delayed progress in the talks.',
+        "France is accused of missing or ignoring the warning signs for the 1994 Rwanda massacre, and sending troops only to counter the Tutsi rebels of Paul Kagame, who is now president The dispute centres on France's role prior to the genocide as a close ally of the Hutu nationalist regime of Juvenal Habyarimana."
     ]
     
-    extractor = HuggingfaceZeroShotEventExtractor()
-    pprint(extractor.extract(sample_texts, sample_events))
+    # Load grade table
+    with open('../models/goldstein.json') as f:
+        goldstein = json.load(f)
+    
+    # Grade sentences using Goldstein scales
+    extractor = HuggingfaceZeroShotEventExtractor(top_n_events=3)
+    grader = GoldsteinGrader(goldstein, extractor)
+    pprint(grader.grade(sample_texts))
 
 # %%
