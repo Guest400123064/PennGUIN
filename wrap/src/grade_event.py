@@ -107,6 +107,13 @@ class KeyBERTEventExtractor(BaseEventExtractor):
         top_n_events: int = 4, 
         temperature: float = 0.03
     ):
+        """
+        Args:
+            model (str, optional): pretrained-model name. Defaults to 'valhalla/distilbart-mnli-12-1'.
+            top_n_events (int, optional): how many top possible events to keep. Defaults to 4.
+            temperature (float, optional): sharpening parameter used by softmax. Defaults to 0.1.
+        """
+
         self._model_card = model
         self._model = KeyBERT(model)
         self._top_n_events = top_n_events
@@ -169,6 +176,14 @@ class HuggingfaceZeroShotEventExtractor(BaseEventExtractor):
         temperature: float = 0.1,
         batch_size: int = 32
     ):
+        """
+        Args:
+            model (str, optional): pretrained-model name. Defaults to 'valhalla/distilbart-mnli-12-1'.
+            top_n_events (int, optional): how many top possible events to keep. Defaults to 4.
+            temperature (float, optional): sharpening parameter used by softmax. Defaults to 0.1.
+            batch_size (int, optional): Defaults to 32.
+        """
+
         self._model_card = model
         self._model = pipeline(
             'zero-shot-classification', model, 
@@ -350,7 +365,7 @@ if __name__ == '__main__':
         goldstein = json.load(f)
     
     # Grade sentences using Goldstein scales
-    extractor = HuggingfaceZeroShotEventExtractor(top_n_events=3)
+    extractor = HuggingfaceZeroShotEventExtractor()
     grader = GoldsteinGrader(goldstein, extractor)
     pprint(grader.grade(sample_texts))
 
