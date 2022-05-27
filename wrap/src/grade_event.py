@@ -12,12 +12,10 @@ This module implements helper classes to detect events. The problem
     
 There are two categories of models: 
     - Cross-encoder: potentially high acc but low speed (when too many possible events).
-    - Bi-encoder: potentially low acc but high speed. 
-    
-Note that the current implementation of the Bi-encoder extractor relies
-    on KeyBERT backend which DO NOT have caching or batch-processing mechanisms. Thus, 
-    the speed for running the two backends are similar. In the future, we may implement 
-    batch processing pipelines directly using SentenceBERT.
+    - Bi-encoder: potentially low acc but high speed. Note that the current implementation 
+        of the Bi-encoder extractor relies on KeyBERT backend which DO NOT have caching or 
+        batch-processing mechanisms. Thus, the speed for running the two backends are similar. 
+        In the future, we may implement batch processing pipelines directly using SentenceBERT.
     
 Aside from event extractor, there is also a GoldsteinGrader class. It takes Goldstein 
     Event Scale <http://web.pdx.edu/~kinsella/jgscale.html> and a 
