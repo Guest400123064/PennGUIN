@@ -79,9 +79,7 @@ class AllenCorefPredictor:
         clusters = [pred.get('clusters') for pred in
             self.model.predict_batch_json({'document': s} for s in texts)]
 
-        ret = [self.model.replace_corefs(d, c) for d, c in 
-            zip(document, clusters)]
-        return ret
+        return [self.model.replace_corefs(d, c) for d, c in zip(document, clusters)]
 
 # %%
 # Sample usage
