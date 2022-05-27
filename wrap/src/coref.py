@@ -63,7 +63,6 @@ class AllenCorefPredictor:
         else:
             raise ValueError('@ AllenCorefPredictor.fetch() :: ' + 
                 f'Unknown <texts> type {type(texts)}; only <str, List[str]> allowed')
-
         
     def _resolve_multi(self, texts: List[str]) -> List[str]:
         """A batch processing wrapper for `CorefPredictor.resolve`
