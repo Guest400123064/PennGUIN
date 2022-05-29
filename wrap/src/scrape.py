@@ -50,6 +50,18 @@ class NewsScraper:
     def __repr__(self):
         return f'NewsScraper({self.verbose}, {self.n_cores}, {self.clean_str})'
 
+    @property
+    def verbose(self):
+        return self.verbose
+
+    @property
+    def n_cores(self):
+        return self.n_cores
+
+    @property
+    def clean_str(self):
+        return self.clean_str
+
     def post_process(self, s: str) -> str:
         """String post-processing function, used to reduce noise.
             1. Convert all characters to ASCII
