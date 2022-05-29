@@ -138,8 +138,8 @@ class NewsScraper:
         
         # Parse and return
         html = str(BeautifulSoup(resp.content, 'html5lib'))
-        if html is None:
-            return (None, EMPTY_TEXT)
+        if html in {None, 'None', ''}:
+            return ('', EMPTY_TEXT)
         return (html, self._html2doc(html))
 
 # %%
