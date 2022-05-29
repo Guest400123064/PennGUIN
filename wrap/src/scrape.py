@@ -2,11 +2,10 @@
 # =============================================================================
 # Author: Yuxuan Wang
 # Email: wangy49@seas.upenn.edu
-# Date: 02-09-2022
+# Date: 05-29-2022
 # =============================================================================
 """
-This module implements helper class that can help scraping articles from a 
-    given list of urls.
+This module implements helper class that can help scraping articles from a given list of urls.
 """
 
 # %%
@@ -14,12 +13,17 @@ import logging
 from typing import List, Union, Tuple
 from multiprocessing import Pool as ThreadPool
 
+from pprint import pprint
+
+import re
+import string
+import unicodedata
+
 import requests
 from bs4 import BeautifulSoup
 from ssl import SSLError
 
 import trafilatura
-
 
 # Error labels
 EMPTY_TEXT = '[EMPTY_TEXT]'
@@ -34,50 +38,73 @@ class NewsScraper:
     
     def __init__(
         self, 
-        fetcher: str  = 'request',
-        verbose: bool = True
+        verbose: bool = True,
+        n_cores: int = 4,
+        clean_str: bool = True
     ) -> None:
-        
-        self.fetcher = fetcher
+
         self.verbose = verbose
-        self.n_cores = 4
-    
-    
-    def html2doc(self, html: str) -> str:
+        self.n_cores = n_cores
+        self.clean_str = clean_str
         
-        ret = trafilatura.extract(
-            html, 
-            favor_precision=True,
-            include_comments=False
-        )
-        return ret
-    
+    def __repr__(self):
+        return f'NewsScraper({self.verbose}, {self.n_cores}, {self.clean_str})'
+
+    def post_process(self, s: str) -> str:
+        """String post-processing function, used to reduce noise.
+            1. Convert all characters to ASCII
+            2. Remove other irrelevant stuff like email address or external url
+            3. Remove special symbols like newline character \\n"""
+            
+        # Normalize special chars
+        s = (unicodedata.normalize('NFKD', s)
+                .encode('ascii', 'ignore').decode())
+
+        # Remove irrelevant info
+        s = re.sub(r'\S*@\S*\s?', '', s)     # Email
+        s = re.sub(r'\S*https?:\S*', '', s)  # URL
+        
+        # Keep punctuation and words only
+        pattern_keep = (string.punctuation + 
+                            string.ascii_letters + 
+                            string.digits + 
+                            r' ')
+        return re.sub(r'[^' + pattern_keep + r']+', '', s)
     
     def fetch(self, urls: Union[List[str], str]) -> List[Tuple[str, str]]:
-        
-        # Backend selection
-        if self.fetcher == 'request':
-            fetcher = self._fetch_req
-        elif self.fetcher == 'trafilatura':
-            raise NotImplementedError('NOT YET IMPLEMENTED')
+        """Main API, given a list of URLs, fetch HTML document and extract articles. Return 
+            in the format of List[(HTML, extracted_article)]"""
 
         # Direct retrieval for single url
         if isinstance(urls, str):
-            return [fetcher(urls)]
+            return [self._fetcher(urls)]
+        
+        # Multi-threading for fast-io
         elif isinstance(urls, list):
             with ThreadPool(self.n_cores) as p:
-                return p.map(fetcher, urls)
+                return p.map(self._fetcher, urls)
         else:
             raise ValueError('@ NewsScraper.fetch() :: ' + 
                 f'Invalid <urls> type {type(urls)}; only <str, List[str]> allowed')
 
-    
-    def _fetch_req(self, url: str) -> Tuple[str, str]:
+    def _html2doc(self, html: str) -> str:
+        """Given HTML texts, use trafilatura to extract news contents"""
         
+        ret = trafilatura.extract(html, favor_precision=True, include_comments=False)
+        if self.clean_str:
+            return self.post_process(ret)
+        return ret
+
+    def _fetcher(self, url: str) -> Tuple[str, str]:
+
+        # Simulate a user real browser 
         head = {'User-Agent': 'Mozilla/5.0'}
         try:
+            if self.verbose:
+                logging.info('@ NewsScraper.fetch() :: ' + 
+                    f'try fetching from url <{url}>')
             resp = requests.get(url, headers=head)
-            
+
         # Try no_ssl fetch
         except SSLError:
             try:
@@ -101,7 +128,7 @@ class NewsScraper:
         html = str(BeautifulSoup(resp.content, 'html5lib'))
         if html is None:
             return (None, EMPTY_TEXT)
-        return (html, self.html2doc(html))
+        return (html, self._html2doc(html))
 
 # %%
 # Sample usage
@@ -112,5 +139,7 @@ if __name__ == '__main__':
     html, text = scraper.fetch('https://github.blog/2019-03-29-leader-spotlight-erin-spiceland/')[0]
     
     # Print results
-    print(text)
-    print(html)
+    pprint(text)
+    pprint(html)
+
+# %%
