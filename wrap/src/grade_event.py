@@ -11,8 +11,8 @@ This module implements helper classes to detect events. The problem
     which particular event the input text is describing.
     
 There are two categories of models: 
-    - Cross-encoder: potentially high acc but low speed (when too many possible events).
-    - Bi-encoder: potentially low acc but high speed. Note that the current implementation 
+    - Cross-Encoder: potentially high acc but low speed (when too many possible events).
+    - Bi-Encoder: potentially low acc but high speed. Note that the current implementation 
         of the Bi-encoder extractor relies on KeyBERT backend which DO NOT have caching or 
         batch-processing mechanisms. Thus, the speed for running the two backends are similar. 
         In the future, we may implement batch processing pipelines directly using SentenceBERT.
