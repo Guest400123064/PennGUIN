@@ -118,7 +118,8 @@ class HuggingfaceZerShotOccupationPredictor:
                 'scores': o['scores']
             }
         return outputs
-    
+
+
 # Sample usage
 if __name__ == '__main__':
     
