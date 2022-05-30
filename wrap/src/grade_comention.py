@@ -137,7 +137,7 @@ class KeyBERTEventExtractor(BaseEventExtractor):
         return self._temperature
     
     # ------------------------------------------------------------------
-    def extract(self, texts: Union[List[str], str], events: List[str] = ['[NULL]']) -> List[Dict[str, Any]]:
+    def extract(self, texts: Union[List[str], str], events: List[str]) -> List[Dict[str, Any]]:
         """Implementation using KeyBERT backend"""
         
         extractor = self._extract_single
@@ -153,7 +153,7 @@ class KeyBERTEventExtractor(BaseEventExtractor):
             raise ValueError('@ KeyBERTEventExtractor.extract() :: ' + 
                 f'Invalid <texts> type {type(texts)}; only <str, List[str]> allowed')
     
-    def _extract_single(self, text: str, events: List[str] = ['[NULL]']) -> Dict[str, Any]:
+    def _extract_single(self, text: str, events: List[str]) -> Dict[str, Any]:
         """Driver used to extract events from a single article/sentence"""
 
         extract, scores = zip(*self.model.extract_keywords(text, candidates=events, top_n=self.top_n_events))
@@ -219,7 +219,7 @@ class HuggingfaceZeroShotEventExtractor(BaseEventExtractor):
         return self._batch_size
     
     # -----------------------------------------------------------------------------------
-    def extract(self, texts: Union[List[str], str], events: List[str] = ['[NULL]']) -> List[Dict[str, Any]]:
+    def extract(self, texts: Union[List[str], str], events: List[str]) -> List[Dict[str, Any]]:
         """Implementation using Huggingface ZeroShotClassification pipeline as the backend"""
         
         # Direct extraction for single article
@@ -233,7 +233,7 @@ class HuggingfaceZeroShotEventExtractor(BaseEventExtractor):
             raise ValueError('@ HuggingfaceZeroShotEventExtractor.extract() :: ' + 
                 f'Invalid <texts> type {type(texts)}; only <str, List[str]> allowed')
     
-    def _extract_single(self, text: str, events: List[str] = ['[NULL]']) -> Dict[str, Any]:
+    def _extract_single(self, text: str, events: List[str]) -> Dict[str, Any]:
         """Driver used to extract events from a single article/sentence"""
 
         output = self.model(text, events)
@@ -246,7 +246,7 @@ class HuggingfaceZeroShotEventExtractor(BaseEventExtractor):
             'raw_scores': scores.tolist()
         }
         
-    def _extract_batch(self, texts: List[str], events: List[str] = ['[NULL]']) -> List[Dict[str, Any]]:
+    def _extract_batch(self, texts: List[str], events: List[str]) -> List[Dict[str, Any]]:
         """Batch processing version of extract single"""
         
         # Helper function for batched inference
