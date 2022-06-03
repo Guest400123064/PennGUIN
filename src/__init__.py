@@ -1,4 +1,3 @@
-from .scrape import NewsScraper
-from .coref import AllenCorefPredictor
-from .event_extract import KeyBERTEventExtractor, CrossEncoderEventExtractor
-from .grade import GoldsteinGrader
+from .scrape_news import NewsScraper
+from .pred_occupation import HuggingfaceZerShotOccupationPredictor
+from .grade_comention import KeyBERTEventExtractor, HuggingfaceZeroShotEventExtractor, GoldsteinGrader
