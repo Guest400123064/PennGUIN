@@ -1,6 +1,3 @@
-# DO NOT UPLOAD/TRACK LARGE DATASET
-data
-
 # Analysis file
 analysis/*/out
 analysis/*/data
