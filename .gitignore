@@ -156,8 +156,5 @@ cython_debug/
 analysis/*/out
 analysis/*/data
 
-# Temporary folder
-tmp
-
 # Local editor settings
 .vscode
