@@ -62,7 +62,7 @@ org_set = set(
     df_edge.loc[mask_org, 'entity2'].str.title()
 ))
 
-# Merge accross articles
+# Merge across articles
 df_edge = (
     df_edge
         .dropna(subset='entity2')
