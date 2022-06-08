@@ -13,6 +13,8 @@ import logging
 from typing import List, Union, Tuple
 from multiprocessing import Pool as ThreadPool
 
+import warnings
+
 from pprint import pprint
 
 import re
@@ -69,6 +71,7 @@ class NewsScraper:
             3. Remove special symbols like newline character \\n"""
             
         # Normalize special chars
+        i = s
         s = (unicodedata.normalize('NFKD', s)
                 .encode('ascii', 'ignore').decode())
 
@@ -81,7 +84,14 @@ class NewsScraper:
                             string.ascii_letters + 
                             string.digits + 
                             r' ')
-        return re.sub(r'[^' + pattern_keep + r']+', '', s)
+        
+        # Check if processed string is null
+        s = re.sub(r'[^' + pattern_keep + r']+', '', s)
+        if s == '':
+            warnings.warn(f'@ {self.__class__.__name__}.preprocess() :: ' + 
+                f'Null string after preprocessing; input: <{i}>')
+            return '[NULL]'
+        return s
     
     def fetch(self, urls: Union[List[str], str]) -> List[Tuple[str, str]]:
         """Main API, given a list of URLs, fetch HTML document and extract articles. Return 

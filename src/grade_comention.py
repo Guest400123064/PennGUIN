@@ -28,6 +28,8 @@ from typing import List, Union, Any, Dict
 from abc import ABC, abstractmethod
 from pprint import pprint
 
+import warnings
+
 import re
 import json
 import string
@@ -82,6 +84,7 @@ class BaseEventExtractor(ABC):
             3. Remove special symbols like newline character \\n"""
             
         # Normalize special chars
+        i = s
         s = (unicodedata.normalize('NFKD', s)
                 .encode('ascii', 'ignore').decode())
 
@@ -94,7 +97,14 @@ class BaseEventExtractor(ABC):
                             string.ascii_letters + 
                             string.digits + 
                             r' ')
-        return re.sub(r'[^' + pattern_keep + r']+', '', s)
+        
+        # Check if processed string is null
+        s = re.sub(r'[^' + pattern_keep + r']+', '', s)
+        if s == '':
+            warnings.warn(f'@ {self.__class__.__name__}.preprocess() :: ' + 
+                f'Null string after preprocessing; input: <{i}>')
+            return '[NULL]'
+        return s
 
 
 class KeyBERTEventExtractor(BaseEventExtractor):

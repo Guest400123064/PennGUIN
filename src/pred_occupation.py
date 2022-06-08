@@ -17,6 +17,8 @@ This module implements helper classes to predict occupation of a person given a
 from typing import List, Union, Any, Dict
 from pprint import pprint
 
+import warnings
+
 import re
 import string
 import unicodedata
@@ -68,6 +70,7 @@ class HuggingfaceZerShotOccupationPredictor:
             3. Remove special symbols like newline character \\n"""
             
         # Normalize special chars
+        i = s
         s = (unicodedata.normalize('NFKD', s)
                 .encode('ascii', 'ignore').decode())
 
@@ -80,7 +83,14 @@ class HuggingfaceZerShotOccupationPredictor:
                             string.ascii_letters + 
                             string.digits + 
                             r' ')
-        return re.sub(r'[^' + pattern_keep + r']+', '', s)
+        
+        # Check if processed string is null
+        s = re.sub(r'[^' + pattern_keep + r']+', '', s)
+        if s == '':
+            warnings.warn(f'@ {self.__class__.__name__}.preprocess() :: ' + 
+                f'Null string after preprocessing; input: <{i}>')
+            return '[NULL]'
+        return s
     
     def get_occupation(self, texts: Union[str, List[str]], occupations: List[str]) -> List[Dict[str, Any]]:
         """Implementation using Huggingface ZeroShotClassification pipeline as the backend"""
